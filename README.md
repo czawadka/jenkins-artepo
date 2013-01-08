@@ -1,4 +1,4 @@
 artepo
 ======
 
-Artifacts repository
+Artifacts repository plugin for Jenkins
