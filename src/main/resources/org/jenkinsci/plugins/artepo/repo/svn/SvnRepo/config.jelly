@@ -1,0 +1,16 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <f:entry title="SVN url" field="svnUrl">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="SVN user" field="svnUser">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="SVN password" field="svnPassword">
+        <f:password />
+    </f:entry>
+
+</j:jelly>

@@ -1,23 +1,23 @@
 package org.jenkinsci.plugins.artepo;
 
-import hudson.Extension;
-import hudson.model.AbstractDescribableImpl;
+import hudson.model.Describable;
 import hudson.model.Descriptor;
+import hudson.model.Hudson;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public class StoreItem extends AbstractDescribableImpl<StoreItem> {
+public class BackupSource implements Describable<BackupSource> {
     private String dir;
     private String includes;
     private String excludes;
 
     @DataBoundConstructor
-    public StoreItem(String dir, String includes, String excludes) {
+    public BackupSource(String dir, String includes, String excludes) {
         this.dir = dir;
         this.includes = includes;
         this.excludes = excludes;
     }
 
-    public StoreItem() {
+    public BackupSource() {
         this("","","");
     }
 
@@ -47,22 +47,15 @@ public class StoreItem extends AbstractDescribableImpl<StoreItem> {
 
     @Override
     public String toString() {
-        return "StoreItem{" +
-                "dir='" + dir + '\'' +
-                ", includes='" + includes + '\'' +
-                ", excludes='" + excludes + '\'' +
-                '}';
+        return "BackupSource[" +
+                dir +
+                ", " + includes +
+                ", " + excludes +
+                ']';
     }
 
-    @Extension
-    public static class DescriptorImpl extends Descriptor<StoreItem> {
-        public DescriptorImpl() {
-            super(StoreItem.class);
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "";
-        }
+    public Descriptor<BackupSource> getDescriptor() {
+        return Hudson.getInstance().getDescriptor(getClass());
     }
+
 }
