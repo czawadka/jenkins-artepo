@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 public class ArtepoUtil {
+    static public final String PROMOTED_NUMBER = "PROMOTED_NUMBER";
 
     static public File toFile(FilePath filePath) {
         return new File(filePath.getRemote());

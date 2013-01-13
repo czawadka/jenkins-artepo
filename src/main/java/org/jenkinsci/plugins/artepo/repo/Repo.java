@@ -13,9 +13,9 @@ import java.io.IOException;
 import java.util.List;
 
 abstract public class Repo implements Describable<Repo> {
-    protected AbstractBuild<?, ?> build;
-    protected Launcher launcher;
-    protected BuildListener listener;
+    transient protected AbstractBuild<?, ?> build;
+    transient protected Launcher launcher;
+    transient protected BuildListener listener;
 
     public boolean backup(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener,
                           String buildTag, List<BackupSource> backupSources)

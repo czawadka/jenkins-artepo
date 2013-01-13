@@ -40,9 +40,10 @@ public class ArtepoBackupDescriptor extends BuildStepDescriptor<Publisher> {
     @Override
     public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
         Repo repo = newRepoInstance(req, formData);
+        String buildTag = formData.getString("buildTag");
         List<BackupSource> sources = req.bindJSONToList(BackupSource.class, formData.get("sources"));
 
-        return new ArtepoBackup(repo, sources);
+        return new ArtepoBackup(repo, buildTag, sources);
     }
 
     private Repo newRepoInstance(StaplerRequest req, JSONObject formData) throws FormException {

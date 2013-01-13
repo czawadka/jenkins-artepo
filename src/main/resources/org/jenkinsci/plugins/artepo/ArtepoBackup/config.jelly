@@ -17,7 +17,10 @@
     </f:entry>
     <!--</f:section>-->
 
-    <f:section title="Sources">
+    <f:section title="Backup parameters">
+    <f:entry field="buildTag" title="Build tag" description="Tag used to label this backup. Backup then can be restored using the same tag. If empty PROMOTED_NUMBER env var or current build number will be used">
+        <f:textbox />
+    </f:entry>
     <f:entry>
         <f:repeatable field="sources" noAddButton="true" minimum="1">
             <table width="100%">
