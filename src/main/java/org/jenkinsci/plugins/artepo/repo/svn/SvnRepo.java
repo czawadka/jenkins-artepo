@@ -1,12 +1,23 @@
 package org.jenkinsci.plugins.artepo.repo.svn;
 
 import hudson.FilePath;
-import org.jenkinsci.plugins.artepo.repo.ScmRepo;
+import hudson.model.Result;
+import org.jenkinsci.plugins.artepo.ArtepoUtil;
+import org.jenkinsci.plugins.artepo.BackupSource;
+import org.jenkinsci.plugins.artepo.repo.Repo;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.tmatesoft.svn.core.SVNCancelException;
+import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.SVNURL;
+import org.tmatesoft.svn.core.wc.ISVNEventHandler;
+import org.tmatesoft.svn.core.wc.SVNEvent;
+import org.tmatesoft.svn.core.wc.SVNInfo;
+import org.tmatesoft.svn.core.wc.SVNRevision;
 
 import java.io.IOException;
+import java.util.List;
 
-public class SvnRepo extends ScmRepo {
+public class SvnRepo extends Repo {
     private String svnUrl;
     private String svnUser;
     private String svnPassword;
@@ -47,12 +58,69 @@ public class SvnRepo extends ScmRepo {
     }
 
     @Override
-    public boolean checkout(FilePath dstPath, String buildTag) throws InterruptedException, IOException {
-        return false;
+    protected boolean backup(FilePath srcPath, String buildTag, List<BackupSource> backupSources) throws InterruptedException, IOException {
+        try {
+            initSvn();
+            FilePath wcPath = getWCPath("backup");
+
+            createRepositoryFolderIfNotExists();
+
+            svnHelper.checkout(ArtepoUtil.toFile(wcPath), parsedSvnUrl, SVNRevision.HEAD);
+
+            ArtepoUtil.sync(wcPath, srcPath, backupSources);
+            svnHelper.deleteMissingAddUnversioned(ArtepoUtil.toFile(wcPath));
+
+            String commitMessage = prepareCommitMessage(buildTag);
+            svnHelper.commit(ArtepoUtil.toFile(wcPath), commitMessage);
+
+            return true;
+        } catch(SVNException e) {
+            throw new RuntimeException(e);
+        } finally {
+            deinitSvn();
+        }
     }
 
-    @Override
-    public boolean commit(FilePath srcPath, String buildTag) throws InterruptedException, IOException {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    private String prepareCommitMessage(String buildTag) {
+        return "buildnumber: "+buildTag;
+    }
+
+    transient SvnHelper svnHelper;
+    transient SVNURL parsedSvnUrl;
+
+    private void initSvn() throws SVNException {
+        parsedSvnUrl = SVNURL.parseURIEncoded(svnUrl);
+
+        svnHelper = new SvnHelper();
+        svnHelper.setAuthentication(svnUser, svnPassword);
+        svnHelper.setEventHandler(new ISVNEventHandler() {
+            public void handleEvent(SVNEvent event, double progress) throws SVNException {
+                listener.getLogger().println(event.toString());
+            }
+
+            public void checkCancelled() throws SVNCancelException {
+                if (build.getResult()== Result.ABORTED)
+                    throw new SVNCancelException();
+            }
+        });
+    }
+
+    private void createRepositoryFolderIfNotExists() throws SVNException {
+        SVNInfo svnInfo = svnHelper.info(parsedSvnUrl);
+        if (svnInfo==null) {
+            svnHelper.mkdir(parsedSvnUrl);
+        }
+    }
+
+    private FilePath getWCPath(String type) {
+        return getTempPath().child(type);
+    }
+
+    private void deinitSvn() {
+        parsedSvnUrl = null;
+        if (svnHelper!=null) {
+            svnHelper.dispose();
+            svnHelper = null;
+        }
     }
 }

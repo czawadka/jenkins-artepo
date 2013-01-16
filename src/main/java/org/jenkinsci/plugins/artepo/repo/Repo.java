@@ -7,6 +7,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.model.Describable;
 import hudson.model.Hudson;
+import org.jenkinsci.plugins.artepo.ArtepoUtil;
 import org.jenkinsci.plugins.artepo.BackupSource;
 
 import java.io.IOException;
@@ -62,5 +63,9 @@ abstract public class Repo implements Describable<Repo> {
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public FilePath getTempPath() {
+        return build.getWorkspace().child("."+ArtepoUtil.PLUGIN_NAME);
     }
 }

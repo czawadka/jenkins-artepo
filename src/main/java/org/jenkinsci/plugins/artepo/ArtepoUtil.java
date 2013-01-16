@@ -10,6 +10,7 @@ import java.util.Collection;
 
 public class ArtepoUtil {
     static public final String PROMOTED_NUMBER = "PROMOTED_NUMBER";
+    static public final String PLUGIN_NAME = "artepo";
 
     static public File toFile(FilePath filePath) {
         return new File(filePath.getRemote());
@@ -32,5 +33,9 @@ public class ArtepoUtil {
         } catch (BuildException e) {
             throw new IOException("Failed to sync " + src + "/" + items + " to " + dst, e);
         }
+    }
+
+    static public void deleteRecursive(File file) throws IOException, InterruptedException {
+        new FilePath(file).deleteRecursive();
     }
 }
