@@ -20,7 +20,7 @@ public class SvnHelper {
         URL_OK
     }
 
-    private SVNClientManager clientManager;
+    protected SVNClientManager clientManager;
 
     public SvnHelper() {
         setupSvnProtocols();

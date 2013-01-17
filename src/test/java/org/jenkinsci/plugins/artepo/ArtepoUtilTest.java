@@ -5,7 +5,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,14 +13,12 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
-public class ArtepoUtilTest {
-    FilePath baseDir;
+public class ArtepoUtilTest extends TestBase {
     FilePath src;
     FilePath dst;
 
     @Before
     public void setUp() throws IOException, InterruptedException {
-        baseDir = new FilePath(new File(System.getProperty("java.io.tmpdir"))).createTempDir("artepo-test","");
         src = baseDir.child("src");
         dst = baseDir.child("dst");
         src.mkdirs();
@@ -30,11 +27,6 @@ public class ArtepoUtilTest {
         src.child("a.txt").touch(System.currentTimeMillis());
         src.child("b.txt").touch(System.currentTimeMillis());
         dst.child("c.txt").touch(System.currentTimeMillis());
-    }
-
-    @After
-    public void tearDown() throws IOException, InterruptedException {
-        baseDir.deleteRecursive();
     }
 
     @Test
