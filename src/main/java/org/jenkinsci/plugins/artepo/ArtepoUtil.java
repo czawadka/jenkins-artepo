@@ -2,8 +2,10 @@ package org.jenkinsci.plugins.artepo;
 
 import hudson.FilePath;
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Sync;
+import org.apache.tools.ant.types.FileSet;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,11 +37,21 @@ public class ArtepoUtil {
             for(BackupSource item : items) {
                 FilePath itemSrc = item.getDir()==null||item.getDir().length()==0 ? src : src.child(item.getDir());
                 String includes = item.getIncludes();
-                syncTask.addFileset(
-                        hudson.Util.createFileSet(toFile(itemSrc),
-                                includes == null ? "" : includes,
-                                item.getExcludes()));
+                FileSet fs = hudson.Util.createFileSet(toFile(itemSrc),
+                        includes == null ? "" : includes,
+                        item.getExcludes());
+                fs.setDefaultexcludes(true);
+                syncTask.addFileset(fs);
             }
+
+            Sync.SyncTarget preserveInDst = new Sync.SyncTarget();
+            String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
+            for (String defaultExclude : defaultExcludes) {
+                preserveInDst.createInclude().setName(defaultExclude);
+            }
+            preserveInDst.setDefaultexcludes(false);
+            syncTask.addPreserveInTarget(preserveInDst);
+            syncTask.setIncludeEmptyDirs(true);
 
             syncTask.execute();
 

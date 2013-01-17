@@ -12,6 +12,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class ArtepoUtilTest extends TestBase {
     FilePath src;
@@ -66,4 +67,16 @@ public class ArtepoUtilTest extends TestBase {
         List<FilePath> files = dst.list();
         assertThat(files, not(contains(dst.child("c.txt"))));
     }
+
+    @Test
+    public void syncDontDeleteScmDirInDst() throws IOException, InterruptedException {
+        FilePath dstGit = dst.child(".git");
+        dstGit.mkdirs();
+
+        ArtepoUtil.sync(dst, src, null);
+
+        assertTrue(dstGit+" doesn't exist", dstGit.exists());
+    }
+
+
 }

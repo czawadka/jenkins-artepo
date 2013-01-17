@@ -113,7 +113,8 @@ public class SvnRepo extends Repo {
     }
 
     private FilePath getWCPath(String type) {
-        return getTempPath().child(type);
+        String nameFromUrl = svnUrl.replaceAll("[^0-9a-zA-Z]+", "_");
+        return getTempPath().child(nameFromUrl);
     }
 
     private void deinitSvn() {

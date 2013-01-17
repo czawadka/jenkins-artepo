@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.artepo;
 
 import hudson.EnvVars;
+import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
@@ -59,7 +60,9 @@ public class ArtepoBackup extends Notifier {
         if (checkCanRun(build, launcher, listener)) {
             String buildTag = getResolvedBuildTag(build, listener);
             listener.getLogger().println("Backup with '"+buildTag+"' tag");
-            repo.backup(build, launcher, listener, buildTag, sources );
+            FilePath baseTempPath = new FilePath(build.getProject().getRootDir());
+            FilePath tempPath = baseTempPath.child("."+ArtepoUtil.PLUGIN_NAME);
+            repo.backup(build, launcher, listener, tempPath, build.getWorkspace(), buildTag, sources );
         }
 
         return true;

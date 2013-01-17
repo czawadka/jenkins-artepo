@@ -39,13 +39,13 @@ public class SvnHelper {
             wcClient.doDelete(missingFile, true, false);
         }
         // add unversioned files
-        wcClient.doAdd( (File[])missingUnversionedHandler.getUnversionedFiles().toArray(),
+        wcClient.doAdd( missingUnversionedHandler.getUnversionedFiles().toArray(new File[0]),
                 true, false, false, SVNDepth.INFINITY, true, false, true );
     }
 
     public WCExists getWCExists(File wcPath, SVNURL wcUrl) throws SVNException {
         SVNInfo info = info(wcPath);
-        if (info!=null)
+        if (info==null)
             return WCExists.DIR_INVALID;
         else if (info.getURL().equals(wcUrl))
             return WCExists.URL_OK;
@@ -53,14 +53,22 @@ public class SvnHelper {
             return WCExists.URL_MISMATCH;
     }
 
-    public SVNInfo info(SVNURL url) throws SVNException {
+    public SVNInfo info(SVNURL url) {
         SVNWCClient wcClient = clientManager.getWCClient();
-        return wcClient.doInfo(url, SVNRevision.HEAD, SVNRevision.HEAD);
+        try {
+            return wcClient.doInfo(url, SVNRevision.HEAD, SVNRevision.HEAD);
+        } catch (SVNException e) {
+            return null;
+        }
     }
 
-    public SVNInfo info(File path) throws SVNException {
+    public SVNInfo info(File path) {
         SVNWCClient wcClient = clientManager.getWCClient();
-        return wcClient.doInfo(path, SVNRevision.HEAD);
+        try {
+            return wcClient.doInfo(path, SVNRevision.HEAD);
+        } catch (SVNException e) {
+            return null;
+        }
     }
     public void mkdir(SVNURL url) throws SVNException {
         SVNCommitClient commitClient = clientManager.getCommitClient();

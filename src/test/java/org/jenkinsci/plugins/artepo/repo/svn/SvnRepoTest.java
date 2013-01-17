@@ -4,6 +4,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.model.Node;
 import hudson.model.Result;
 import org.hamcrest.Matcher;
 import org.jenkinsci.plugins.artepo.TestBase;
@@ -70,11 +71,14 @@ public class SvnRepoTest extends TestBase {
 
     protected SvnRepo backup(FilePath workspaceDir, SVNURL svnUrl, String buildTag) throws IOException, InterruptedException {
         SvnRepo repo = new SvnRepo(svnUrl.toString(), null, null);
+        FilePath tempPath = workspaceDir.child(".artepo");
 
         repo.backup(
                 createBuildMock(workspaceDir),
                 createLauncherMock(),
                 createBuildListenerMock(),
+                tempPath,
+                workspaceDir,
                 buildTag,
                 null
         );
@@ -86,9 +90,6 @@ public class SvnRepoTest extends TestBase {
         AbstractBuild build = mock(AbstractBuild.class);
         when(build.getResult())
                 .thenReturn(Result.SUCCESS);
-        when(build.getWorkspace())
-                .thenReturn(workspaceDir);
-
         return build;
     }
 

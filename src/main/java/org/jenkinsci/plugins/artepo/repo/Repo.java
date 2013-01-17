@@ -16,19 +16,29 @@ import java.util.List;
 abstract public class Repo implements Describable<Repo> {
     transient protected AbstractBuild<?, ?> build;
     transient protected Launcher launcher;
+    transient protected FilePath tempPath;
     transient protected BuildListener listener;
 
-    public boolean backup(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener,
-                          String buildTag, List<BackupSource> backupSources)
+    public boolean backup(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener, FilePath tempPath,
+                          FilePath sourcePath, String buildTag, List<BackupSource> backupSources)
             throws InterruptedException, IOException {
+
         this.build = build;
         this.launcher = launcher;
         this.listener = listener;
+        this.tempPath = tempPath;
 
-        return backup(build.getWorkspace(), buildTag, backupSources);
+        try {
+            return backup(sourcePath, buildTag, backupSources);
+        } finally {
+            this.build = null;
+            this.launcher = null;
+            this.listener = null;
+            this.tempPath = null;
+        }
     }
 
-    abstract protected boolean backup(FilePath srcPath, String buildTag, List<BackupSource> backupSources)
+    abstract protected boolean backup(FilePath sourcePath, String buildTag, List<BackupSource> backupSources)
             throws InterruptedException, IOException;
 
     public RepoDescriptor getDescriptor() {
@@ -66,6 +76,6 @@ abstract public class Repo implements Describable<Repo> {
     }
 
     public FilePath getTempPath() {
-        return build.getWorkspace().child("."+ArtepoUtil.PLUGIN_NAME);
+        return tempPath;
     }
 }
