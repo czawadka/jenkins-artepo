@@ -2,10 +2,12 @@ package org.jenkinsci.plugins.artepo;
 
 import hudson.FilePath;
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Sync;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 
 public class ArtepoUtil {
@@ -16,16 +18,27 @@ public class ArtepoUtil {
         return new File(filePath.getRemote());
     }
 
-    static public void sync(final FilePath dst, final FilePath src, final Collection<BackupSource> items) throws IOException, InterruptedException {
+    static public void sync(FilePath dst, FilePath src, Collection<BackupSource> items) throws IOException, InterruptedException {
         try {
             Sync syncTask = new Sync();
+            syncTask.setProject(new Project());
+            syncTask.init();
             syncTask.setTodir(toFile(dst));
             syncTask.setOverwrite(true);
             syncTask.setIncludeEmptyDirs(false);
 
+            if (items==null || items.isEmpty()) {
+                items = new ArrayList<BackupSource>(1);
+                items.add(new BackupSource(null, null, null));
+            }
+
             for(BackupSource item : items) {
                 FilePath itemSrc = item.getDir()==null||item.getDir().length()==0 ? src : src.child(item.getDir());
-                syncTask.addFileset(hudson.Util.createFileSet(toFile(itemSrc), item.getIncludes(), item.getExcludes()));
+                String includes = item.getIncludes();
+                syncTask.addFileset(
+                        hudson.Util.createFileSet(toFile(itemSrc),
+                                includes == null ? "" : includes,
+                                item.getExcludes()));
             }
 
             syncTask.execute();
