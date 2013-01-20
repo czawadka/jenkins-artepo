@@ -61,17 +61,12 @@ public class SvnRepo extends Repo {
     protected boolean backup(FilePath srcPath, String buildTag, List<BackupSource> backupSources) throws InterruptedException, IOException {
         try {
             initSvn();
-            FilePath wcPath = getWCPath("backup");
 
-            createRepositoryFolderIfNotExists();
-
-            svnHelper.checkout(ArtepoUtil.toFile(wcPath), parsedSvnUrl, SVNRevision.HEAD);
+            FilePath wcPath = checkout(null, null);
 
             ArtepoUtil.sync(wcPath, srcPath, backupSources);
-            svnHelper.deleteMissingAddUnversioned(ArtepoUtil.toFile(wcPath));
 
-            String commitMessage = prepareCommitMessage(buildTag);
-            svnHelper.commit(ArtepoUtil.toFile(wcPath), commitMessage);
+            commit(wcPath, buildTag);
 
             return true;
         } catch(SVNException e) {
@@ -79,6 +74,23 @@ public class SvnRepo extends Repo {
         } finally {
             deinitSvn();
         }
+    }
+
+    protected FilePath checkout(FilePath wcPath, String buildTag) throws SVNException, IOException, InterruptedException {
+        createRepositoryFolderIfNotExists();
+
+        if (wcPath==null)
+            wcPath = getWCPath();
+        svnHelper.checkout(ArtepoUtil.toFile(wcPath), parsedSvnUrl, SVNRevision.HEAD);
+
+        return wcPath;
+    }
+
+    protected void commit(FilePath wcPath, String buildTag) throws SVNException, IOException, InterruptedException {
+        svnHelper.deleteMissingAddUnversioned(ArtepoUtil.toFile(wcPath));
+
+        String commitMessage = prepareCommitMessage(buildTag);
+        svnHelper.commit(ArtepoUtil.toFile(wcPath), commitMessage);
     }
 
     private String prepareCommitMessage(String buildTag) {
@@ -112,7 +124,7 @@ public class SvnRepo extends Repo {
         }
     }
 
-    private FilePath getWCPath(String type) {
+    private FilePath getWCPath() {
         String nameFromUrl = svnUrl.replaceAll("[^0-9a-zA-Z]+", "_");
         return getTempPath().child(nameFromUrl);
     }

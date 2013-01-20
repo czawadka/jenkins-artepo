@@ -103,6 +103,27 @@ public class SvnRepoTest extends TestBase {
         assertThat(repoFiles, containsInAnyOrder(workspaceFile2));
     }
 
+    @Test
+    public void checkoutTaggedVersion() throws IOException, InterruptedException, SVNException {
+        SVNURL svnUrl = createRepositoryWithFiles();
+        FilePath workspace = createWorkspaceWithFiles();
+
+        // commit build 12
+        replaceFiles(workspace, "a.txt");
+        backup(workspace, svnUrl, "12");
+
+        // commit build 13
+        replaceFiles(workspace, "b.txt", "c.txt");
+        SvnRepo repo = backup(workspace, svnUrl, "13");
+
+        // back to build 4
+        FilePath checkoutPath = repo.checkout(null, "12");
+
+        List<FilePath> workspaceFiles = checkoutPath.list();
+        assertThat(workspaceFiles, containsInAnyOrder(checkoutPath.child("a.txt")));
+    }
+
+
     protected SvnRepo backup(FilePath workspaceDir, SVNURL svnUrl, String buildTag) throws IOException, InterruptedException {
         SvnRepo repo = new SvnRepo(svnUrl.toString(), null, null);
         FilePath tempPath = createTempSubDir(".artepo");
@@ -175,12 +196,27 @@ public class SvnRepoTest extends TestBase {
         FilePath workspace = createTempSubDir("workspace");
         workspace.mkdirs();
 
-        for(String fileName : fileNames) {
-            workspace.child(fileName).write(fileName, "UTF-8");
-        }
+        replaceFiles(workspace, fileNames);
 
         return workspace;
     }
+
+    protected FilePath replaceFiles(FilePath dir, String... fileNames) throws IOException, InterruptedException {
+        List<FilePath> paths = dir.list();
+        for (FilePath path : paths) {
+            if (path.isDirectory())
+                path.deleteRecursive();
+            else
+                path.delete();
+        }
+
+        for(String fileName : fileNames) {
+            dir.child(fileName).write(fileName, "UTF-8");
+        }
+
+        return dir;
+    }
+
     protected FilePath createTempSubDir(String subFolder) throws IOException, InterruptedException {
         FilePath subDir = subFolder==null ? baseDir.createTempDir("svn", "") : baseDir.child(subFolder);
         subDir.mkdirs();
