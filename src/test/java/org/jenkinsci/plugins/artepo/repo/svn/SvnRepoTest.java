@@ -8,25 +8,20 @@ import hudson.model.Result;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
-import org.hamcrest.core.IsNull;
 import org.jenkinsci.plugins.artepo.TestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
-import org.tmatesoft.svn.core.wc.SVNInfo;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -51,7 +46,8 @@ public class SvnRepoTest extends TestBase {
 
         backup(workspace, svnUrl, "13");
 
-        assertThat(svnUrl.appendPath(workspaceFile, true), repoItemExists());
+        List<String> repoFiles = svnHelper.list(svnUrl, null, true);
+        assertThat(repoFiles, containsInAnyOrder(workspaceFile));
     }
 
     @Test
@@ -65,7 +61,8 @@ public class SvnRepoTest extends TestBase {
 
         backup(workspace, svnUrl, "13");
 
-        assertThat(svnUrl.appendPath(repoFile, true), not(repoItemExists()));
+        List<String> repoFiles = svnHelper.list(svnUrl, null, true);
+        assertThat(repoFiles, containsInAnyOrder(workspaceFile));
     }
 
     @Test
@@ -79,7 +76,8 @@ public class SvnRepoTest extends TestBase {
 
         backup(workspace, svnUrl, "13");
 
-        assertThat(svnUrl.appendPath(workspaceFile, true), repoItemExists());
+        List<String> repoFiles = svnHelper.list(svnUrl, null, true);
+        assertThat(repoFiles, containsInAnyOrder(workspaceFile));
     }
 
     @Test
@@ -101,12 +99,13 @@ public class SvnRepoTest extends TestBase {
         // backup
         backup(workspace, svnUrl2, "14");
 
-        assertThat(svnUrl2.appendPath(workspaceFile2, true), repoItemExists());
+        List<String> repoFiles = svnHelper.list(svnUrl2, null, true);
+        assertThat(repoFiles, containsInAnyOrder(workspaceFile2));
     }
 
     protected SvnRepo backup(FilePath workspaceDir, SVNURL svnUrl, String buildTag) throws IOException, InterruptedException {
         SvnRepo repo = new SvnRepo(svnUrl.toString(), null, null);
-        FilePath tempPath = workspaceDir.child(".artepo");
+        FilePath tempPath = createTempSubDir(".artepo");
 
         repo.backup(
                 createBuildMock(workspaceDir),

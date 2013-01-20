@@ -12,6 +12,7 @@ import org.tmatesoft.svn.core.wc.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 
 public class SvnHelper {
     public enum WCExists {
@@ -39,8 +40,11 @@ public class SvnHelper {
             wcClient.doDelete(missingFile, true, false);
         }
         // add unversioned files
-        wcClient.doAdd( missingUnversionedHandler.getUnversionedFiles().toArray(new File[0]),
-                true, false, false, SVNDepth.INFINITY, true, false, true );
+        Collection<File> unversionedFiles = missingUnversionedHandler.getUnversionedFiles();
+        if (!unversionedFiles.isEmpty()) {
+            wcClient.doAdd( unversionedFiles.toArray(new File[0]),
+                    true, false, false, SVNDepth.INFINITY, true, false, true );
+        }
     }
 
     public WCExists getWCExists(File wcPath, SVNURL wcUrl) throws SVNException {

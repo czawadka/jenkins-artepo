@@ -32,9 +32,11 @@ public class MissingUnversionedStatusHandler implements ISVNStatusHandler {
 
     public void handleStatus(SVNStatus status) throws SVNException {
         SVNStatusType contentStatus = status.getContentsStatus();
-        if (contentStatus==SVNStatusType.STATUS_MISSING)
-            missingFiles.add(status.getFile());
-        else if (contentStatus==SVNStatusType.STATUS_UNVERSIONED)
-            unversionedFiles.add(status.getFile());
+        File file = status.getFile();
+        if (contentStatus==SVNStatusType.STATUS_MISSING || !file.exists())
+            missingFiles.add(file);
+        else if (contentStatus==SVNStatusType.STATUS_UNVERSIONED
+                || contentStatus==SVNStatusType.STATUS_NONE)
+            unversionedFiles.add(file);
     }
 }
