@@ -78,6 +78,8 @@ public class SvnHelper {
     public void checkout(File wcPath, SVNURL srcUrl, SVNRevision revision) throws IOException, InterruptedException, SVNException {
         clearWC(wcPath, srcUrl);
 
+        if (revision==null)
+            revision = SVNRevision.HEAD;
         SVNUpdateClient updateClient = clientManager.getUpdateClient();
         updateClient.doCheckout(srcUrl, wcPath, revision, revision, SVNDepth.INFINITY, true);
     }

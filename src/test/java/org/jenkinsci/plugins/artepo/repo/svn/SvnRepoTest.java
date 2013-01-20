@@ -4,69 +4,104 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
-import hudson.model.Node;
 import hudson.model.Result;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
+import org.hamcrest.core.IsNull;
 import org.jenkinsci.plugins.artepo.TestBase;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
-import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.SVNInfo;
-import org.tmatesoft.svn.core.wc.admin.SVNAdminClient;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.Collections;
 
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class SvnRepoTest extends TestBase {
     TestSvnHelper svnHelper;
-    SVNURL dstRepoUrl;
     PrintStream logger;
     ByteArrayOutputStream loggerStream;
 
     @Before
     public void setUp() throws IOException, InterruptedException, SVNException {
         svnHelper = new TestSvnHelper();
-
-        dstRepoUrl = svnHelper.createRepository(toFile(baseDir.child("dst")));
     }
 
     @Test
-    public void backupCanAddFile() throws IOException, InterruptedException, SVNException {
-        SVNURL svnUrl = dstRepoUrl.appendPath("someproject", true);
-
-        String fileName = "a.txt";
-        FilePath workspace = createWorkspace(fileName);
+    public void backupAddsFile() throws IOException, InterruptedException, SVNException {
+        // prepare repo
+        SVNURL svnUrl = createRepositoryWithFiles();
+        // prepare workspace
+        String workspaceFile = "b.txt";
+        FilePath workspace = createWorkspaceWithFiles(workspaceFile);
 
         backup(workspace, svnUrl, "13");
 
-        SVNURL fileUrl = svnUrl.appendPath(fileName, true);
-        SVNInfo info = svnHelper.info(fileUrl);
-        assertNotNull(info);
-        assertEquals(fileUrl, info.getURL());
+        assertThat(svnUrl.appendPath(workspaceFile, true), repoItemExists());
     }
 
-    protected FilePath createWorkspace(String...fileNames) throws IOException, InterruptedException {
-        FilePath workspace = baseDir.child("workspace");
-        workspace.mkdirs();
+    @Test
+    public void backupRemovesFile() throws IOException, InterruptedException, SVNException {
+        // prepare repo
+        String repoFile = "a.txt";
+        SVNURL svnUrl = createRepositoryWithFiles(repoFile);
+        // prepare workspace
+        String workspaceFile = "b.txt";
+        FilePath workspace = createWorkspaceWithFiles(workspaceFile);
 
-        for(String fileName : fileNames) {
-            workspace.child(fileName).write(fileName, "UTF-8");
-        }
+        backup(workspace, svnUrl, "13");
 
-        return workspace;
+        assertThat(svnUrl.appendPath(repoFile, true), not(repoItemExists()));
+    }
+
+    @Test
+    public void backupCreateNonExistingSubPath() throws IOException, InterruptedException, SVNException {
+        // prepare repo
+        SVNURL svnUrl = createRepositoryWithFiles();
+        svnUrl = svnUrl.appendPath("subpath", true);
+        // prepare workspace
+        String workspaceFile = "b.txt";
+        FilePath workspace = createWorkspaceWithFiles(workspaceFile);
+
+        backup(workspace, svnUrl, "13");
+
+        assertThat(svnUrl.appendPath(workspaceFile, true), repoItemExists());
+    }
+
+    @Test
+    public void backupSvnUrlHasChanged() throws IOException, InterruptedException, SVNException {
+        // prepare workspace
+        String workspaceFile = "b.txt";
+        FilePath workspace = createWorkspaceWithFiles(workspaceFile);
+        // prepare repo
+        SVNURL svnUrl = createRepositoryWithFiles();
+        // backup
+        backup(workspace, svnUrl, "13");
+
+        // prepare workspace
+        workspace.child(workspaceFile).delete();
+        String workspaceFile2 = "c.txt";
+        workspace.child(workspaceFile2).write(workspaceFile2, "UTF-8");
+        // prepare repo
+        SVNURL svnUrl2 = createRepositoryWithFiles();
+        // backup
+        backup(workspace, svnUrl2, "14");
+
+        assertThat(svnUrl2.appendPath(workspaceFile2, true), repoItemExists());
     }
 
     protected SvnRepo backup(FilePath workspaceDir, SVNURL svnUrl, String buildTag) throws IOException, InterruptedException {
@@ -108,9 +143,60 @@ public class SvnRepoTest extends TestBase {
         return buildListener;
     }
 
-    protected String getLog() throws UnsupportedEncodingException {
-        logger.flush();
-        return loggerStream.toString("UTF-8");
+    protected SVNURL createRepositoryWithFiles(String...files)
+            throws InterruptedException, SVNException, IOException {
+
+        SVNURL svnUrl = svnHelper.createRepository(toFile(createTempSubDir(null)));
+
+        String commitMessage = "Add "+ Arrays.asList(files);
+        addRepositoryFiles(svnUrl, commitMessage, files);
+
+        return svnUrl;
     }
 
+    protected FilePath addRepositoryFiles(SVNURL svnUrl, String commitMessage, String...files) throws IOException, InterruptedException, SVNException {
+        FilePath wcPath = null;
+        if (files!=null && files.length>0) {
+            wcPath = createTempSubDir("wc");
+            svnHelper.checkout(toFile(wcPath), svnUrl, null);
+
+            for (String file : files) {
+                FilePath filePath = wcPath.child(file);
+                filePath.getParent().mkdirs();
+                filePath.write(file, "UTF-8");
+            }
+
+            svnHelper.deleteMissingAddUnversioned(toFile(wcPath));
+            svnHelper.commit(toFile(wcPath), commitMessage);
+        }
+        return wcPath;
+    }
+
+    protected FilePath createWorkspaceWithFiles(String... fileNames) throws IOException, InterruptedException {
+        FilePath workspace = createTempSubDir("workspace");
+        workspace.mkdirs();
+
+        for(String fileName : fileNames) {
+            workspace.child(fileName).write(fileName, "UTF-8");
+        }
+
+        return workspace;
+    }
+    protected FilePath createTempSubDir(String subFolder) throws IOException, InterruptedException {
+        FilePath subDir = subFolder==null ? baseDir.createTempDir("svn", "") : baseDir.child(subFolder);
+        subDir.mkdirs();
+        return subDir;
+    }
+
+    public Matcher repoItemExists() {
+        return new BaseMatcher() {
+            public boolean matches(Object item) {
+                return svnHelper.info((SVNURL)item)!=null;
+            }
+
+            public void describeTo(Description description) {
+                description.appendText("svn item exists");
+            }
+        };
+    }
 }
