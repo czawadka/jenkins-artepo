@@ -1,23 +1,15 @@
 package org.jenkinsci.plugins.artepo.repo.svn;
 
 import hudson.FilePath;
-import hudson.model.Result;
-import org.jenkinsci.plugins.artepo.ArtepoUtil;
 import org.jenkinsci.plugins.artepo.BackupSource;
-import org.jenkinsci.plugins.artepo.repo.Repo;
+import org.jenkinsci.plugins.artepo.repo.AbstractRepo;
+import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.tmatesoft.svn.core.SVNCancelException;
-import org.tmatesoft.svn.core.SVNException;
-import org.tmatesoft.svn.core.SVNURL;
-import org.tmatesoft.svn.core.wc.ISVNEventHandler;
-import org.tmatesoft.svn.core.wc.SVNEvent;
-import org.tmatesoft.svn.core.wc.SVNInfo;
-import org.tmatesoft.svn.core.wc.SVNRevision;
 
 import java.io.IOException;
 import java.util.List;
 
-public class SvnRepo extends Repo {
+public class SvnRepo extends AbstractRepo {
     private String svnUrl;
     private String svnUser;
     private String svnPassword;
@@ -57,83 +49,15 @@ public class SvnRepo extends Repo {
         this.svnPassword = svnPassword;
     }
 
-    @Override
-    protected boolean backup(FilePath srcPath, String buildTag, List<BackupSource> backupSources) throws InterruptedException, IOException {
-        try {
-            initSvn();
-
-            FilePath wcPath = checkout(null, null);
-
-            ArtepoUtil.sync(wcPath, srcPath, backupSources);
-
-            commit(wcPath, buildTag);
-
-            return true;
-        } catch(SVNException e) {
-            throw new RuntimeException(e);
-        } finally {
-            deinitSvn();
-        }
+    public FilePath prepareSource(RepoInfoProvider infoProvider, String buildTag) throws InterruptedException, IOException {
+        SvnRepoImpl impl = new SvnRepoImpl(infoProvider, svnUrl, svnUser, svnPassword);
+        return impl.prepareSource(buildTag);
     }
 
-    protected FilePath checkout(FilePath wcPath, String buildTag) throws SVNException, IOException, InterruptedException {
-        createRepositoryFolderIfNotExists();
-
-        if (wcPath==null)
-            wcPath = getWCPath();
-        svnHelper.checkout(ArtepoUtil.toFile(wcPath), parsedSvnUrl, SVNRevision.HEAD);
-
-        return wcPath;
+    public void copyFrom(RepoInfoProvider infoProvider, FilePath sourcePath, List<BackupSource> patterns, String buildTag)
+            throws InterruptedException, IOException {
+        SvnRepoImpl impl = new SvnRepoImpl(infoProvider, svnUrl, svnUser, svnPassword);
+        impl.copyFrom(sourcePath, patterns, buildTag);
     }
 
-    protected void commit(FilePath wcPath, String buildTag) throws SVNException, IOException, InterruptedException {
-        svnHelper.deleteMissingAddUnversioned(ArtepoUtil.toFile(wcPath));
-
-        String commitMessage = prepareCommitMessage(buildTag);
-        svnHelper.commit(ArtepoUtil.toFile(wcPath), commitMessage);
-    }
-
-    private String prepareCommitMessage(String buildTag) {
-        return "buildnumber: "+buildTag;
-    }
-
-    transient SvnHelper svnHelper;
-    transient SVNURL parsedSvnUrl;
-
-    private void initSvn() throws SVNException {
-        parsedSvnUrl = SVNURL.parseURIEncoded(svnUrl);
-
-        svnHelper = new SvnHelper();
-        svnHelper.setAuthentication(svnUser, svnPassword);
-        svnHelper.setEventHandler(new ISVNEventHandler() {
-            public void handleEvent(SVNEvent event, double progress) throws SVNException {
-                listener.getLogger().println(event.toString());
-            }
-
-            public void checkCancelled() throws SVNCancelException {
-                if (build.getResult()== Result.ABORTED)
-                    throw new SVNCancelException();
-            }
-        });
-    }
-
-    private void createRepositoryFolderIfNotExists() throws SVNException {
-        SVNInfo svnInfo = svnHelper.info(parsedSvnUrl);
-        if (svnInfo==null) {
-            svnHelper.mkdir(parsedSvnUrl);
-        }
-    }
-
-    private FilePath getWCPath() {
-        String nameFromUrl = svnUrl.replaceAll("[^0-9a-zA-Z]+", "_");
-        return getTempPath().child(nameFromUrl);
-    }
-
-    private void deinitSvn() {
-        parsedSvnUrl = null;
-        if (svnHelper!=null) {
-            svnHelper.dispose();
-            svnHelper = null;
-        }
-    }
 }

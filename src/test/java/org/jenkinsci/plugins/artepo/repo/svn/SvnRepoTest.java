@@ -117,7 +117,7 @@ public class SvnRepoTest extends TestBase {
         SvnRepo repo = backup(workspace, svnUrl, "13");
 
         // back to build 4
-        FilePath checkoutPath = repo.checkout(null, "12");
+        FilePath checkoutPath = repo.checkout(svnHelper, null, "12");
 
         List<FilePath> workspaceFiles = checkoutPath.list();
         assertThat(workspaceFiles, containsInAnyOrder(checkoutPath.child("a.txt")));

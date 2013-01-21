@@ -10,8 +10,14 @@ import java.io.IOException;
 public class TestBase extends ArtepoUtil {
     protected FilePath baseDir;
 
-    public FilePath createTempDir() throws IOException, InterruptedException {
-        return new FilePath(new File(System.getProperty("java.io.tmpdir"))).createTempDir("artepo-test","");
+    public FilePath createTempDir() {
+        try {
+            return new FilePath(new File(System.getProperty("java.io.tmpdir"))).createTempDir("artepo-test","");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Before

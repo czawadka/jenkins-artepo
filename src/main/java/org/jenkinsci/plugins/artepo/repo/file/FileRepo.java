@@ -2,14 +2,14 @@ package org.jenkinsci.plugins.artepo.repo.file;
 
 import hudson.FilePath;
 import org.jenkinsci.plugins.artepo.BackupSource;
-import org.jenkinsci.plugins.artepo.repo.Repo;
+import org.jenkinsci.plugins.artepo.repo.AbstractRepo;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class FileRepo extends Repo {
+public class FileRepo extends AbstractRepo {
     private String dstPath;
 
     @DataBoundConstructor

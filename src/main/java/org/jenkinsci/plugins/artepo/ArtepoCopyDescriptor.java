@@ -5,17 +5,17 @@ import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Publisher;
 import net.sf.json.JSONObject;
-import org.jenkinsci.plugins.artepo.repo.Repo;
+import org.jenkinsci.plugins.artepo.repo.AbstractRepo;
 import org.jenkinsci.plugins.artepo.repo.RepoDescriptor;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.util.List;
 
 @Extension
-public class ArtepoBackupDescriptor extends BuildStepDescriptor<Publisher> {
+public class ArtepoCopyDescriptor extends BuildStepDescriptor<Publisher> {
 
-    public ArtepoBackupDescriptor() {
-        super(ArtepoBackup.class);
+    public ArtepoCopyDescriptor() {
+        super(ArtepoCopy.class);
         load();
     }
 
@@ -30,27 +30,27 @@ public class ArtepoBackupDescriptor extends BuildStepDescriptor<Publisher> {
     }
 
     public List<RepoDescriptor> getRepoDescriptors() {
-        return Repo.all();
+        return AbstractRepo.all();
     }
 
-    public Repo getDefaultRepo() throws FormException {
-        return Repo.getDefaultRepo();
+    public AbstractRepo getDefaultRepo() throws FormException {
+        return AbstractRepo.getDefaultRepo();
     }
 
     @Override
     public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-        Repo repo = newRepoInstance(req, formData);
+        AbstractRepo repo = newRepoInstance(req, formData);
         String buildTag = formData.getString("buildTag");
         List<BackupSource> sources = req.bindJSONToList(BackupSource.class, formData.get("sources"));
 
-        return new ArtepoBackup(repo, buildTag, sources);
+        return new ArtepoCopy(repo, buildTag, sources);
     }
 
-    private Repo newRepoInstance(StaplerRequest req, JSONObject formData) throws FormException {
+    private AbstractRepo newRepoInstance(StaplerRequest req, JSONObject formData) throws FormException {
         JSONObject repoFormData = formData.getJSONObject("repo");
         String repoType = repoFormData.getString("value");
-        RepoDescriptor repoDescriptor = Repo.getDescriptorByType(repoType);
-        Repo repo = repoDescriptor!=null ? repoDescriptor.newInstance(req, repoFormData) : null;
+        RepoDescriptor repoDescriptor = AbstractRepo.getDescriptorByType(repoType);
+        AbstractRepo repo = repoDescriptor!=null ? repoDescriptor.newInstance(req, repoFormData) : null;
 
         return repo;
     }
