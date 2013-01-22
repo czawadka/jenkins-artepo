@@ -127,4 +127,15 @@ public class SvnRepoImpl extends AbstractRepoImpl {
         return "buildnumber: "+buildTag;
     }
 
+    public String getSvnUrl() {
+        return svnUrl;
+    }
+
+    public String getSvnUser() {
+        return svnUser;
+    }
+
+    public String getSvnPassword() {
+        return svnPassword;
+    }
 }

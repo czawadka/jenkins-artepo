@@ -34,4 +34,8 @@ public class FileRepoImpl extends AbstractRepoImpl {
 
         ArtepoUtil.sync(destinationPath, sourcePath, patterns);
     }
+
+    public String getPath() {
+        return path;
+    }
 }

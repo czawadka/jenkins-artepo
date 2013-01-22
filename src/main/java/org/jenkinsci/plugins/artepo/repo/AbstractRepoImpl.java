@@ -17,4 +17,8 @@ abstract public class AbstractRepoImpl {
 
     abstract public void copyFrom(FilePath source, List<BackupSource> patterns, String buildTag)
             throws InterruptedException, IOException;
+
+    public RepoInfoProvider getInfoProvider() {
+        return infoProvider;
+    }
 }
