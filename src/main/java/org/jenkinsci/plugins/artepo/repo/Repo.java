@@ -11,7 +11,7 @@ public interface Repo {
     /**
      * Called on source repository to prepare files to be copied to destination repository.
      *
-     * @param buildTag Name of previous build tag. That tag can
+     * @param buildTag Tag of previously copied build
      * @return Directory with files prepared to copy
      *
      * @throws InterruptedException

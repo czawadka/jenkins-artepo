@@ -1,46 +1,32 @@
 package org.jenkinsci.plugins.artepo.repo.file;
 
-import hudson.FilePath;
-import org.jenkinsci.plugins.artepo.BackupSource;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepo;
+import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
+import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
 public class FileRepo extends AbstractRepo {
-    private String dstPath;
+    private String path;
 
     @DataBoundConstructor
-    public FileRepo(String dstPath) {
-        this.dstPath = dstPath;
+    public FileRepo(String path) {
+        this.path = path;
     }
 
     public FileRepo() {
         this(null);
     }
 
-    public String getDstPath() {
-        return dstPath;
+    public String getPath() {
+        return path;
     }
 
-    public void setDstPath(String dstPath) {
-        this.dstPath = dstPath;
+    public void setPath(String path) {
+        this.path = path;
     }
 
     @Override
-    protected boolean backup(FilePath srcPath, String buildTag, List<BackupSource> backupSources)
-            throws InterruptedException, IOException {
-
-        FilePath buildDstPath = new FilePath(new File(dstPath)).child(buildTag);
-        buildDstPath.mkdirs();
-
-        for(BackupSource backupSource : backupSources) {
-            listener.getLogger().println("Backup "+backupSource+" to "+buildDstPath);
-            FilePath sourceSrcPath = backupSource.getDir()!=null ? srcPath.child(backupSource.getDir()) : srcPath;
-            sourceSrcPath.copyRecursiveTo(backupSource.getIncludes(), backupSource.getExcludes(), buildDstPath);
-        }
-        return true;
+    protected AbstractRepoImpl createImpl(RepoInfoProvider infoProvider) {
+        return new FileRepoImpl(infoProvider, path);
     }
 }

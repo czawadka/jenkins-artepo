@@ -1,13 +1,9 @@
 package org.jenkinsci.plugins.artepo.repo.svn;
 
-import hudson.FilePath;
-import org.jenkinsci.plugins.artepo.BackupSource;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepo;
+import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.io.IOException;
-import java.util.List;
 
 public class SvnRepo extends AbstractRepo {
     private String svnUrl;
@@ -49,15 +45,8 @@ public class SvnRepo extends AbstractRepo {
         this.svnPassword = svnPassword;
     }
 
-    public FilePath prepareSource(RepoInfoProvider infoProvider, String buildTag) throws InterruptedException, IOException {
-        SvnRepoImpl impl = new SvnRepoImpl(infoProvider, svnUrl, svnUser, svnPassword);
-        return impl.prepareSource(buildTag);
+    @Override
+    protected AbstractRepoImpl createImpl(RepoInfoProvider infoProvider) {
+        return new SvnRepoImpl(infoProvider, svnUrl, svnUser, svnPassword);
     }
-
-    public void copyFrom(RepoInfoProvider infoProvider, FilePath sourcePath, List<BackupSource> patterns, String buildTag)
-            throws InterruptedException, IOException {
-        SvnRepoImpl impl = new SvnRepoImpl(infoProvider, svnUrl, svnUser, svnPassword);
-        impl.copyFrom(sourcePath, patterns, buildTag);
-    }
-
 }

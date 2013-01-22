@@ -24,11 +24,11 @@ public class ArtepoCopy extends Notifier {
     private String buildTag;
 
     @DataBoundConstructor
-    public ArtepoCopy(Repo sourceRepo, Repo destinationRepo, List<BackupSource> sourcePatterns, String buildTag) {
+    public ArtepoCopy(Repo sourceRepo, Repo destinationRepo, List<BackupSource> sourcePatterns) {
         this.sourceRepo = sourceRepo;
         this.destinationRepo = destinationRepo;
         this.sourcePatterns = sourcePatterns;
-        this.buildTag = buildTag;
+        this.buildTag = null;
     }
 
     public Repo getSourceRepo() {

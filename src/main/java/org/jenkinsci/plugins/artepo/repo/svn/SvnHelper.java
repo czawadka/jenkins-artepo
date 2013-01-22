@@ -1,9 +1,7 @@
 package org.jenkinsci.plugins.artepo.repo.svn;
 
 import org.jenkinsci.plugins.artepo.ArtepoUtil;
-import org.tmatesoft.svn.core.SVNDepth;
-import org.tmatesoft.svn.core.SVNException;
-import org.tmatesoft.svn.core.SVNURL;
+import org.tmatesoft.svn.core.*;
 import org.tmatesoft.svn.core.auth.ISVNAuthenticationManager;
 import org.tmatesoft.svn.core.internal.io.dav.DAVRepositoryFactory;
 import org.tmatesoft.svn.core.internal.io.fs.FSRepositoryFactory;
@@ -14,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class SvnHelper {
     public enum WCExists {
@@ -109,6 +108,15 @@ public class SvnHelper {
                 null, false, true, SVNDepth.INFINITY);
     }
 
+    public List<SVNLogEntry> log(SVNURL url, SVNRevision startRevision, int limit) throws SVNException {
+        ArrayList<SVNLogEntry> logEntries = new ArrayList<SVNLogEntry>(limit);
+        ISVNLogEntryHandler logHandler = new LogEntryHandler(logEntries);
+        SVNLogClient logClient = clientManager.getLogClient();
+        logClient.doLog(url, null, SVNRevision.HEAD, startRevision, null, true, false, limit, logHandler);
+
+        return logEntries;
+    }
+
     public void dispose() {
         clientManager.dispose();
     }
@@ -139,7 +147,7 @@ public class SvnHelper {
         FSRepositoryFactory.setup();
     }
 
-    public static class MissingUnversionedStatusHandler implements ISVNStatusHandler {
+    private static class MissingUnversionedStatusHandler implements ISVNStatusHandler {
         private Collection<File> missingFiles;
         private Collection<File> unversionedFiles;
 
@@ -168,6 +176,18 @@ public class SvnHelper {
             else if (contentStatus==SVNStatusType.STATUS_UNVERSIONED
                     || contentStatus==SVNStatusType.STATUS_NONE)
                 unversionedFiles.add(file);
+        }
+    }
+
+    private static class LogEntryHandler implements ISVNLogEntryHandler {
+        private final ArrayList<SVNLogEntry> logEntries;
+
+        public LogEntryHandler(ArrayList<SVNLogEntry> logEntries) {
+            this.logEntries = logEntries;
+        }
+
+        public void handleLogEntry(SVNLogEntry logEntry) throws SVNException {
+            logEntries.add(logEntry);
         }
     }
 }

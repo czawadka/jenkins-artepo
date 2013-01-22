@@ -1,7 +1,6 @@
 package org.jenkinsci.plugins.artepo;
 
 import hudson.FilePath;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,14 +13,14 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-public class ArtepoUtilTest extends TestBase {
+public class ArtepoUtilTest extends AbstractTest {
     FilePath src;
     FilePath dst;
 
     @Before
     public void setUp() throws IOException, InterruptedException {
-        src = baseDir.child("src");
-        dst = baseDir.child("dst");
+        src = tempBaseDir.child("src");
+        dst = tempBaseDir.child("dst");
         src.mkdirs();
         dst.mkdirs();
 

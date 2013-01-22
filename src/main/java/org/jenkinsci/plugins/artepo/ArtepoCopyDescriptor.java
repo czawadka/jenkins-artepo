@@ -6,6 +6,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Publisher;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepo;
+import org.jenkinsci.plugins.artepo.repo.Repo;
 import org.jenkinsci.plugins.artepo.repo.RepoDescriptor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -39,19 +40,19 @@ public class ArtepoCopyDescriptor extends BuildStepDescriptor<Publisher> {
 
     @Override
     public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-        AbstractRepo repo = newRepoInstance(req, formData);
-        String buildTag = formData.getString("buildTag");
-        List<BackupSource> sources = req.bindJSONToList(BackupSource.class, formData.get("sources"));
+        Repo sourceRepo = newRepoInstance(req, formData, "sourceRepo");
+        Repo destinationRepo = newRepoInstance(req, formData, "destinationRepo");
+        List<BackupSource> sourcePatterns = req.bindJSONToList(BackupSource.class,
+                formData.get("sourcePatterns"));
 
-        return new ArtepoCopy(repo, buildTag, sources);
+        return new ArtepoCopy(sourceRepo, destinationRepo, sourcePatterns);
     }
 
-    private AbstractRepo newRepoInstance(StaplerRequest req, JSONObject formData) throws FormException {
-        JSONObject repoFormData = formData.getJSONObject("repo");
+    private Repo newRepoInstance(StaplerRequest req, JSONObject formData, String repoName)
+            throws FormException {
+        JSONObject repoFormData = formData.getJSONObject(repoName);
         String repoType = repoFormData.getString("value");
         RepoDescriptor repoDescriptor = AbstractRepo.getDescriptorByType(repoType);
-        AbstractRepo repo = repoDescriptor!=null ? repoDescriptor.newInstance(req, repoFormData) : null;
-
-        return repo;
+        return repoDescriptor!=null ? repoDescriptor.newInstance(req, repoFormData) : null;
     }
 }

@@ -3,9 +3,12 @@ package org.jenkinsci.plugins.artepo.repo.svn;
 import hudson.FilePath;
 import org.jenkinsci.plugins.artepo.ArtepoUtil;
 import org.jenkinsci.plugins.artepo.BackupSource;
+import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
+import org.jenkinsci.plugins.artepo.repo.BuildTagNotFoundException;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 import org.tmatesoft.svn.core.SVNCancelException;
 import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.SVNLogEntry;
 import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.wc.ISVNEventHandler;
 import org.tmatesoft.svn.core.wc.SVNEvent;
@@ -15,22 +18,18 @@ import org.tmatesoft.svn.core.wc.SVNRevision;
 import java.io.IOException;
 import java.util.List;
 
-public class SvnRepoImpl {
-    RepoInfoProvider infoProvider;
-    SVNURL svnUrl;
+public class SvnRepoImpl extends AbstractRepoImpl {
+    String svnUrl;
     String svnUser;
     String svnPassword;
     SvnHelper svnHelper;
 
     public SvnRepoImpl(RepoInfoProvider infoProvider, String svnUrl, String svnUser, String svnPassword) {
-        this.infoProvider = infoProvider;
+        super(infoProvider);
+
+        this.svnUrl = svnUrl;
         this.svnUser = svnUser;
         this.svnPassword = svnPassword;
-        try {
-            this.svnUrl = SVNURL.parseURIDecoded(svnUrl);
-        } catch (SVNException e) {
-            throw new IllegalArgumentException("Error parsing "+svnUrl, e);
-        }
 
         this.svnHelper = createSvnHelper();
     }
@@ -53,10 +52,7 @@ public class SvnRepoImpl {
 
     public FilePath prepareSource(String buildTag) throws InterruptedException, IOException {
         try {
-
-            FilePath wcPath = checkout(buildTag);
-            return wcPath;
-
+            return checkout(buildTag);
         } catch (SVNException e) {
             throw new RuntimeException(e);
         }
@@ -65,30 +61,45 @@ public class SvnRepoImpl {
     FilePath checkout(String buildTag)
             throws SVNException, IOException, InterruptedException {
 
-        SVNRevision revision = findRevisionFromBuildTag(buildTag);
-        createRepositoryFolderIfNotExists();
+        SVNURL url = SVNURL.parseURIDecoded(svnUrl);
+        createRepositoryFolderIfNotExists(url);
 
         FilePath wcPath = getWCPath();
-        svnHelper.checkout(ArtepoUtil.toFile(wcPath), svnUrl, SVNRevision.HEAD);
+        SVNRevision revision = buildTag==null ? SVNRevision.HEAD : findRevisionFromBuildTag(buildTag);
+        svnHelper.checkout(ArtepoUtil.toFile(wcPath), url, revision);
 
         return wcPath;
     }
 
-    SVNRevision findRevisionFromBuildTag(String buildTag) {
-        if (buildTag==null)
-            return SVNRevision.HEAD;
-        throw new UnsupportedOperationException("findRevisionFromBuildTag");
+    SVNRevision findRevisionFromBuildTag(String buildTag) throws SVNException {
+        SVNRevision currentRevision = SVNRevision.HEAD;
+        SVNURL url = SVNURL.parseURIEncoded(svnUrl);
+        int limit = 20;
+
+        String pattern = prepareCommitMessage(buildTag);
+
+        do {
+            List<SVNLogEntry> logEntries = svnHelper.log(url, currentRevision, limit);
+            for (SVNLogEntry logEntry : logEntries) {
+                String commitMessage = logEntry.getMessage();
+                currentRevision = SVNRevision.create(logEntry.getRevision());
+                if (commitMessage!=null && commitMessage.contains(pattern))
+                    return currentRevision;
+            }
+        } while(currentRevision.getNumber()>0);
+
+        throw new BuildTagNotFoundException(buildTag, svnUrl);
     }
 
-    void createRepositoryFolderIfNotExists() throws SVNException {
-        SVNInfo svnInfo = svnHelper.info(svnUrl);
+    void createRepositoryFolderIfNotExists(SVNURL url) throws SVNException {
+        SVNInfo svnInfo = svnHelper.info(url);
         if (svnInfo==null) {
-            svnHelper.mkdir(svnUrl);
+            svnHelper.mkdir(url);
         }
     }
 
     FilePath getWCPath() {
-        String nameFromUrl = svnUrl.toString().replaceAll("[^0-9a-zA-Z]+", "_");
+        String nameFromUrl = svnUrl.replaceAll("[^0-9a-zA-Z]+", "_");
         return infoProvider.getTempPath().child(nameFromUrl);
     }
 
