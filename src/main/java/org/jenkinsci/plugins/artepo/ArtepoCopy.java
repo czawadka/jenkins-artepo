@@ -86,7 +86,11 @@ public class ArtepoCopy extends Notifier {
                 }
 
                 public PrintStream getLogger() {
-                    return listener.getLogger();  //To change body of implemented methods use File | Settings | File Templates.
+                    return listener.getLogger();
+                }
+
+                public FilePath getWorkspacePath() {
+                    return build.getWorkspace();
                 }
             };
             FilePath sourcePath = sourceRepo.prepareSource(infoProvider, buildTag);

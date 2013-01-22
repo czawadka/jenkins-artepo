@@ -8,4 +8,5 @@ public interface RepoInfoProvider {
     public boolean isBuildActive();
     public FilePath getTempPath();
     public PrintStream getLogger();
+    public FilePath getWorkspacePath();
 }

@@ -1,14 +1,15 @@
-package org.jenkinsci.plugins.artepo.repo.file;
+package org.jenkinsci.plugins.artepo.repo.workspace;
 
 import hudson.FilePath;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImplTest;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
+import org.jenkinsci.plugins.artepo.repo.file.FileRepoImpl;
 
 import java.io.IOException;
 import java.util.List;
 
-public class FileRepoImplTest extends AbstractRepoImplTest {
+public class WorkspaceRepoImplTest extends AbstractRepoImplTest {
 
     @Override
     protected List<String> listRealRepository(Object realRepository, String buildTag) throws IOException, InterruptedException {

@@ -114,7 +114,7 @@ abstract public class AbstractRepoImplTest extends AbstractTest {
     protected abstract Object prepareNonExistingRealRepository() throws IOException, InterruptedException;
     protected abstract void addRealRepositoryFiles(Object realRepository, String buildTag, String...files)
             throws IOException, InterruptedException;
-    protected abstract AbstractRepoImpl createRepoImpl(Object realRepository) throws UnsupportedEncodingException;
+    protected abstract AbstractRepoImpl createRepoImpl(Object realRepository) throws IOException, InterruptedException;
 
     protected Object createRealRepositoryWithFiles(String buildTag, String...files) throws IOException, InterruptedException {
         Object realRepository = createRealRepository();
@@ -138,8 +138,12 @@ abstract public class AbstractRepoImplTest extends AbstractTest {
         return dir;
     }
 
-    protected RepoInfoProvider createInfoProvider() {
+    protected RepoInfoProvider createInfoProvider() throws IOException, InterruptedException {
+        return createInfoProvider(null);
+    }
+    protected RepoInfoProvider createInfoProvider(FilePath workspacePath) throws IOException, InterruptedException {
         final PrintStream logger = createLogger();
+        final FilePath realWorkspacePath = workspacePath!=null ? workspacePath : createTempSubDir("workspace");
         return new RepoInfoProvider() {
             public boolean isBuildActive() {
                 return true;
@@ -149,6 +153,10 @@ abstract public class AbstractRepoImplTest extends AbstractTest {
             }
             public PrintStream getLogger() {
                 return logger;
+            }
+
+            public FilePath getWorkspacePath() {
+                return realWorkspacePath;
             }
         };
     }

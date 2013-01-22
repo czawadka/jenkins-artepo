@@ -10,7 +10,6 @@ import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import static org.jenkinsci.plugins.artepo.ArtepoUtil.toFile;
@@ -68,8 +67,8 @@ public class SvnRepoImplTest extends AbstractRepoImplTest {
     }
 
     @Override
-    protected AbstractRepoImpl createRepoImpl(Object realRepository) throws UnsupportedEncodingException {
-        String svnUrl = realRepository.toString(); // expected from createRealRepository
+    protected AbstractRepoImpl createRepoImpl(Object realRepository) throws IOException, InterruptedException {
+        String svnUrl = realRepository.toString();
         RepoInfoProvider infoProvider = createInfoProvider();
         return new SvnRepoImpl(infoProvider, svnUrl, null, null);
     }
