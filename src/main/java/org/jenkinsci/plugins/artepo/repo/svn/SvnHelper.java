@@ -112,7 +112,8 @@ public class SvnHelper {
         ArrayList<SVNLogEntry> logEntries = new ArrayList<SVNLogEntry>(limit);
         ISVNLogEntryHandler logHandler = new LogEntryHandler(logEntries);
         SVNLogClient logClient = clientManager.getLogClient();
-        logClient.doLog(url, null, SVNRevision.HEAD, startRevision, null, true, false, limit, logHandler);
+        logClient.doLog(url, null, SVNRevision.HEAD, startRevision, SVNRevision.create(0L),
+                true, false, limit, logHandler);
 
         return logEntries;
     }
