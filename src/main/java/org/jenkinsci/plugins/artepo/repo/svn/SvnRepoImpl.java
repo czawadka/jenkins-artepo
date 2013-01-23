@@ -19,24 +19,24 @@ import java.io.IOException;
 import java.util.List;
 
 public class SvnRepoImpl extends AbstractRepoImpl {
-    String svnUrl;
-    String svnUser;
-    String svnPassword;
+    String url;
+    String user;
+    String password;
     SvnHelper svnHelper;
 
-    public SvnRepoImpl(RepoInfoProvider infoProvider, String svnUrl, String svnUser, String svnPassword) {
+    public SvnRepoImpl(RepoInfoProvider infoProvider, String url, String user, String password) {
         super(infoProvider);
 
-        this.svnUrl = svnUrl;
-        this.svnUser = svnUser;
-        this.svnPassword = svnPassword;
+        this.url = url;
+        this.user = user;
+        this.password = password;
 
         this.svnHelper = createSvnHelper();
     }
 
     SvnHelper createSvnHelper() {
         SvnHelper svnHelper = new SvnHelper();
-        svnHelper.setAuthentication(svnUser, svnPassword);
+        svnHelper.setAuthentication(user, password);
         svnHelper.setEventHandler(new ISVNEventHandler() {
             public void handleEvent(SVNEvent event, double progress) throws SVNException {
                 infoProvider.getLogger().println(event.toString());
@@ -61,25 +61,25 @@ public class SvnRepoImpl extends AbstractRepoImpl {
     FilePath checkout(String buildTag)
             throws SVNException, IOException, InterruptedException {
 
-        SVNURL url = SVNURL.parseURIDecoded(svnUrl);
-        createRepositoryFolderIfNotExists(url);
+        SVNURL svnUrl = SVNURL.parseURIDecoded(this.url);
+        createRepositoryFolderIfNotExists(svnUrl);
 
         FilePath wcPath = getWCPath();
         SVNRevision revision = buildTag==null ? SVNRevision.HEAD : findRevisionFromBuildTag(buildTag);
-        svnHelper.checkout(ArtepoUtil.toFile(wcPath), url, revision);
+        svnHelper.checkout(ArtepoUtil.toFile(wcPath), svnUrl, revision);
 
         return wcPath;
     }
 
     SVNRevision findRevisionFromBuildTag(String buildTag) throws SVNException {
         SVNRevision currentRevision = SVNRevision.HEAD;
-        SVNURL url = SVNURL.parseURIEncoded(svnUrl);
+        SVNURL svnUrl = SVNURL.parseURIEncoded(this.url);
         int limit = 20;
 
         String pattern = prepareCommitMessage(buildTag);
 
         do {
-            List<SVNLogEntry> logEntries = svnHelper.log(url, currentRevision, limit);
+            List<SVNLogEntry> logEntries = svnHelper.log(svnUrl, currentRevision, limit);
             for (SVNLogEntry logEntry : logEntries) {
                 String commitMessage = logEntry.getMessage();
                 currentRevision = SVNRevision.create(logEntry.getRevision());
@@ -88,18 +88,18 @@ public class SvnRepoImpl extends AbstractRepoImpl {
             }
         } while(currentRevision.getNumber()>0);
 
-        throw new BuildTagNotFoundException(buildTag, svnUrl);
+        throw new BuildTagNotFoundException(buildTag, this.url);
     }
 
-    void createRepositoryFolderIfNotExists(SVNURL url) throws SVNException {
-        SVNInfo svnInfo = svnHelper.info(url);
+    void createRepositoryFolderIfNotExists(SVNURL svnUrl) throws SVNException {
+        SVNInfo svnInfo = svnHelper.info(svnUrl);
         if (svnInfo==null) {
-            svnHelper.mkdir(url);
+            svnHelper.mkdir(svnUrl);
         }
     }
 
     FilePath getWCPath() {
-        String nameFromUrl = svnUrl.replaceAll("[^0-9a-zA-Z]+", "_");
+        String nameFromUrl = url.replaceAll("[^0-9a-zA-Z]+", "_");
         return infoProvider.getTempPath().child(nameFromUrl);
     }
 
@@ -127,15 +127,15 @@ public class SvnRepoImpl extends AbstractRepoImpl {
         return "buildnumber: "+buildTag;
     }
 
-    public String getSvnUrl() {
-        return svnUrl;
+    public String getUrl() {
+        return url;
     }
 
-    public String getSvnUser() {
-        return svnUser;
+    public String getUser() {
+        return user;
     }
 
-    public String getSvnPassword() {
-        return svnPassword;
+    public String getPassword() {
+        return password;
     }
 }

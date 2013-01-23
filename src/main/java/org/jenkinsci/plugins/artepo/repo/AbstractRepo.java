@@ -5,6 +5,7 @@ import hudson.FilePath;
 import hudson.model.Describable;
 import hudson.model.Hudson;
 import org.jenkinsci.plugins.artepo.SourcePattern;
+import org.jenkinsci.plugins.artepo.repo.file.FileRepo;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,17 +41,7 @@ abstract public class AbstractRepo implements Describable<AbstractRepo>, Repo {
     }
 
     static public AbstractRepo getDefaultRepo() {
-        DescriptorExtensionList<AbstractRepo,RepoDescriptor> repoDescriptors = all();
-        if (repoDescriptors.isEmpty())
-            return null;
-        RepoDescriptor repoDescriptor = repoDescriptors.get(0);
-        try {
-            return repoDescriptor.clazz.newInstance();
-        } catch (InstantiationException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        return new FileRepo();
     }
 
 }

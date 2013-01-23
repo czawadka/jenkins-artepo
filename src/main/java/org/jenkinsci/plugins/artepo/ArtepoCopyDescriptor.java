@@ -27,7 +27,7 @@ public class ArtepoCopyDescriptor extends BuildStepDescriptor<Publisher> {
 
     @Override
     public String getDisplayName() {
-        return "Artepo Backup";
+        return "Artepo Copy";
     }
 
     public List<RepoDescriptor> getRepoDescriptors() {
@@ -40,12 +40,11 @@ public class ArtepoCopyDescriptor extends BuildStepDescriptor<Publisher> {
 
     @Override
     public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-        Repo sourceRepo = newRepoInstance(req, formData, "sourceRepo");
         Repo destinationRepo = newRepoInstance(req, formData, "destinationRepo");
         List<SourcePattern> sourcePatterns = req.bindJSONToList(SourcePattern.class,
-                formData.get("sourcePatterns"));
+                formData.get("patterns"));
 
-        return new ArtepoCopy(sourceRepo, destinationRepo, sourcePatterns);
+        return new ArtepoCopy(destinationRepo, sourcePatterns);
     }
 
     private Repo newRepoInstance(StaplerRequest req, JSONObject formData, String repoName)

@@ -21,9 +21,9 @@ public class SvnRepoTest extends AbstractRepoTest {
 
         SvnRepoImpl impl = (SvnRepoImpl)repo.createImpl(info);
 
-        Assert.assertEquals(url, impl.getSvnUrl());
-        Assert.assertEquals(user, impl.getSvnUser());
-        Assert.assertEquals(password, impl.getSvnPassword());
+        Assert.assertEquals(url, impl.getUrl());
+        Assert.assertEquals(user, impl.getUser());
+        Assert.assertEquals(password, impl.getPassword());
         Assert.assertSame(info, impl.getInfoProvider());
     }
 }

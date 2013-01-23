@@ -47,11 +47,12 @@ public class SourcePattern implements Describable<SourcePattern> {
 
     @Override
     public String toString() {
-        return "SourcePattern[" +
-                subFolder +
-                ", " + includes +
-                ", " + excludes +
-                ']';
+        String subFolder = this.subFolder!=null && this.subFolder.length()>0 ? this.subFolder+"/" : "";
+        String includes = this.includes!=null ? this.includes : "";
+        String excludes = this.excludes!=null && this.excludes.length()>0 ? "{-" + this.excludes +'}' : "";
+        return subFolder
+                + includes
+                + excludes;
     }
 
     public Descriptor<SourcePattern> getDescriptor() {

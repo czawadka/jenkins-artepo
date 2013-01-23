@@ -1,0 +1,44 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <f:entry>
+        <f:section title="Destination repository">
+        <j:set var="repoDescriptors" value="${descriptor.getRepoDescriptors()}" />
+        <j:set var="selectedRepo" value="${instance.destinationRepo!=null ? instance.destinationRepo : descriptor.defaultRepo}" />
+        <j:forEach var="idx" begin="0" end="${size(repoDescriptors)-1}">
+            <j:set var="repoDescriptor" value="${repoDescriptors[idx]}" />
+            <j:set var="descriptor" value="${repoDescriptor}" />
+            <j:set var="isSelectedRepo" value="${selectedRepo.descriptor==repoDescriptor}" />
+            <f:radioBlock name="destinationRepo" value="${repoDescriptor.type}" title="${repoDescriptor.displayName}" checked="${isSelectedRepo}">
+                <j:set var="repo" value="${isSelectedRepo ? selectedRepo : null}" />
+                <j:set var="instance" value="${repo}" />
+                <st:include from="${repoDescriptor}" page="${repoDescriptor.configPage}"/>
+            </f:radioBlock>
+        </j:forEach>
+        </f:section>
+    </f:entry>
+
+    <f:section title="Source patterns" description="">
+    <f:block>
+        <div>
+            Source patterns define files to be copied from source repository. A source repository is a workspace
+            (if we are main post-build Artepo Copy action) or repository taken from main post-build Artepo Copy
+            (if we are NON main post-build Artepo Copy action).
+        </div>
+        <f:repeatable field="patterns" noAddButton="true" minimum="1">
+            <table width="100%">
+                <st:include page="config.jelly" class="${descriptor.clazz}"/>
+
+                <f:entry>
+                    <div align="right">
+                        <input type="button" value="${%Add more ...}" class="repeatable-add show-if-last" />
+                        <input type="button" value="${%Delete source}" class="repeatable-delete show-if-not-only" style="margin-left: 1em;" />
+                    </div>
+                </f:entry>
+
+            </table>
+        </f:repeatable>
+    </f:block>
+    </f:section>
+
+</j:jelly>

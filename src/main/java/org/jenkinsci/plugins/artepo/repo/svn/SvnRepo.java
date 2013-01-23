@@ -6,47 +6,52 @@ import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class SvnRepo extends AbstractRepo {
-    private String svnUrl;
-    private String svnUser;
-    private String svnPassword;
+    private String url;
+    private String user;
+    private String password;
 
     @DataBoundConstructor
-    public SvnRepo(String svnUrl, String svnUser, String svnPassword) {
-        this.svnUrl = svnUrl;
-        this.svnUser = svnUser;
-        this.svnPassword = svnPassword;
+    public SvnRepo(String url, String user, String password) {
+        this.url = url;
+        this.user = user;
+        this.password = password;
     }
 
     public SvnRepo() {
         this(null, null, null);
     }
 
-    public String getSvnUrl() {
-        return svnUrl;
+    public String getUrl() {
+        return url;
     }
 
-    public void setSvnUrl(String svnUrl) {
-        this.svnUrl = svnUrl;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
-    public String getSvnUser() {
-        return svnUser;
+    public String getUser() {
+        return user;
     }
 
-    public void setSvnUser(String svnUser) {
-        this.svnUser = svnUser;
+    public void setUser(String user) {
+        this.user = user;
     }
 
-    public String getSvnPassword() {
-        return svnPassword;
+    public String getPassword() {
+        return password;
     }
 
-    public void setSvnPassword(String svnPassword) {
-        this.svnPassword = svnPassword;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     @Override
     protected AbstractRepoImpl createImpl(RepoInfoProvider infoProvider) {
-        return new SvnRepoImpl(infoProvider, svnUrl, svnUser, svnPassword);
+        return new SvnRepoImpl(infoProvider, url, user, password);
+    }
+
+    @Override
+    public String toString() {
+        return "svn repo "+ url;
     }
 }

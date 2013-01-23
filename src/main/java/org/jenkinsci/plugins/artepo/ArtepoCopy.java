@@ -3,14 +3,12 @@ package org.jenkinsci.plugins.artepo;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.BuildListener;
-import hudson.model.Result;
-import hudson.model.TaskListener;
+import hudson.model.*;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import org.jenkinsci.plugins.artepo.repo.Repo;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
+import org.jenkinsci.plugins.artepo.repo.workspace.WorkspaceRepo;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
@@ -18,25 +16,15 @@ import java.io.PrintStream;
 import java.util.List;
 
 public class ArtepoCopy extends Notifier {
-    private Repo sourceRepo;
     private Repo destinationRepo;
     private List<SourcePattern> patterns;
     private String buildTag;
 
     @DataBoundConstructor
-    public ArtepoCopy(Repo sourceRepo, Repo destinationRepo, List<SourcePattern> patterns) {
-        this.sourceRepo = sourceRepo;
+    public ArtepoCopy(Repo destinationRepo, List<SourcePattern> patterns) {
         this.destinationRepo = destinationRepo;
         this.patterns = patterns;
         this.buildTag = null;
-    }
-
-    public Repo getSourceRepo() {
-        return sourceRepo;
-    }
-
-    public void setSourceRepo(Repo sourceRepo) {
-        this.sourceRepo = sourceRepo;
     }
 
     public Repo getDestinationRepo() {
@@ -70,9 +58,9 @@ public class ArtepoCopy extends Notifier {
     @Override
     public boolean perform(final AbstractBuild<?, ?> build, Launcher launcher, final BuildListener listener)
             throws InterruptedException, IOException {
-        if (checkCanRun(build, launcher, listener)) {
-            listener.getLogger().println("Copy from "+sourceRepo+" to "+destinationRepo);
-
+        if (!isCopyAllowed(build, launcher, listener)) {
+            listener.getLogger().println("Artepo backup cannot be run due to unsuccessful build");
+        } else {
             FilePath baseTempPath = new FilePath(build.getProject().getRootDir());
             final FilePath tempPath = baseTempPath.child("."+ArtepoUtil.PLUGIN_NAME);
             String buildTag = getResolvedBuildTag(build, listener);
@@ -93,6 +81,11 @@ public class ArtepoCopy extends Notifier {
                     return build.getWorkspace();
                 }
             };
+
+            Repo sourceRepo = detectSourceRepo(build);
+            Repo destinationRepo = getDestinationRepo();
+
+            listener.getLogger().println("Copy "+patterns+" from "+sourceRepo+" to "+destinationRepo);
             FilePath sourcePath = sourceRepo.prepareSource(infoProvider, buildTag);
             destinationRepo.copyFrom(infoProvider, sourcePath, patterns, buildTag);
         }
@@ -100,9 +93,16 @@ public class ArtepoCopy extends Notifier {
         return true;
     }
 
-    private boolean checkCanRun(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
+    private Repo detectSourceRepo(AbstractBuild<?, ?> build) {
+        ArtepoCopy projectArtepo = (ArtepoCopy) ((Project)build.getProject()).getPublisher(getDescriptor());
+        if (projectArtepo!=null)
+            return projectArtepo.getDestinationRepo();
+        else
+            return new WorkspaceRepo();
+    }
+
+    private boolean isCopyAllowed(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
         if (build.getResult().isWorseThan(Result.SUCCESS)) {
-            listener.getLogger().println("Artepo backup cannot be run due to unsuccessful build");
             return false;
         } else {
             return true;

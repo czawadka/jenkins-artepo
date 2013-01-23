@@ -29,4 +29,9 @@ public class FileRepo extends AbstractRepo {
     protected AbstractRepoImpl createImpl(RepoInfoProvider infoProvider) {
         return new FileRepoImpl(infoProvider, path);
     }
+
+    @Override
+    public String toString() {
+        return "file repo "+path;
+    }
 }
