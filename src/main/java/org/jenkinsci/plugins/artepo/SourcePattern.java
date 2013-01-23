@@ -5,28 +5,28 @@ import hudson.model.Descriptor;
 import hudson.model.Hudson;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public class BackupSource implements Describable<BackupSource> {
-    private String dir;
+public class SourcePattern implements Describable<SourcePattern> {
+    private String subFolder;
     private String includes;
     private String excludes;
 
     @DataBoundConstructor
-    public BackupSource(String dir, String includes, String excludes) {
-        this.dir = dir;
+    public SourcePattern(String subFolder, String includes, String excludes) {
+        this.subFolder = subFolder;
         this.includes = includes;
         this.excludes = excludes;
     }
 
-    public BackupSource() {
+    public SourcePattern() {
         this("","","");
     }
 
-    public String getDir() {
-        return dir;
+    public String getSubFolder() {
+        return subFolder;
     }
 
-    public void setDir(String dir) {
-        this.dir = dir;
+    public void setSubFolder(String subFolder) {
+        this.subFolder = subFolder;
     }
 
     public String getIncludes() {
@@ -47,14 +47,14 @@ public class BackupSource implements Describable<BackupSource> {
 
     @Override
     public String toString() {
-        return "BackupSource[" +
-                dir +
+        return "SourcePattern[" +
+                subFolder +
                 ", " + includes +
                 ", " + excludes +
                 ']';
     }
 
-    public Descriptor<BackupSource> getDescriptor() {
+    public Descriptor<SourcePattern> getDescriptor() {
         return Hudson.getInstance().getDescriptor(getClass());
     }
 

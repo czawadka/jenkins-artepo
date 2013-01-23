@@ -20,7 +20,7 @@ public class ArtepoUtil {
         return new File(filePath.getRemote());
     }
 
-    static public void sync(FilePath dst, FilePath src, Collection<BackupSource> items) throws IOException, InterruptedException {
+    static public void sync(FilePath dst, FilePath src, Collection<SourcePattern> items) throws IOException, InterruptedException {
         try {
             Sync syncTask = new Sync();
             syncTask.setProject(new Project());
@@ -30,12 +30,12 @@ public class ArtepoUtil {
             syncTask.setIncludeEmptyDirs(false);
 
             if (items==null || items.isEmpty()) {
-                items = new ArrayList<BackupSource>(1);
-                items.add(new BackupSource(null, null, null));
+                items = new ArrayList<SourcePattern>(1);
+                items.add(new SourcePattern(null, null, null));
             }
 
-            for(BackupSource item : items) {
-                FilePath itemSrc = item.getDir()==null||item.getDir().length()==0 ? src : src.child(item.getDir());
+            for(SourcePattern item : items) {
+                FilePath itemSrc = item.getSubFolder()==null||item.getSubFolder().length()==0 ? src : src.child(item.getSubFolder());
                 String includes = item.getIncludes();
                 FileSet fs = hudson.Util.createFileSet(toFile(itemSrc),
                         includes == null ? "" : includes,

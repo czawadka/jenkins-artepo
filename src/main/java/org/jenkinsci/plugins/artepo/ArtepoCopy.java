@@ -20,14 +20,14 @@ import java.util.List;
 public class ArtepoCopy extends Notifier {
     private Repo sourceRepo;
     private Repo destinationRepo;
-    private List<BackupSource> sourcePatterns;
+    private List<SourcePattern> patterns;
     private String buildTag;
 
     @DataBoundConstructor
-    public ArtepoCopy(Repo sourceRepo, Repo destinationRepo, List<BackupSource> sourcePatterns) {
+    public ArtepoCopy(Repo sourceRepo, Repo destinationRepo, List<SourcePattern> patterns) {
         this.sourceRepo = sourceRepo;
         this.destinationRepo = destinationRepo;
-        this.sourcePatterns = sourcePatterns;
+        this.patterns = patterns;
         this.buildTag = null;
     }
 
@@ -47,12 +47,12 @@ public class ArtepoCopy extends Notifier {
         this.destinationRepo = destinationRepo;
     }
 
-    public List<BackupSource> getSourcePatterns() {
-        return sourcePatterns;
+    public List<SourcePattern> getPatterns() {
+        return patterns;
     }
 
-    public void setSourcePatterns(List<BackupSource> sourcePatterns) {
-        this.sourcePatterns = sourcePatterns;
+    public void setPatterns(List<SourcePattern> patterns) {
+        this.patterns = patterns;
     }
 
     public String getBuildTag() {
@@ -94,7 +94,7 @@ public class ArtepoCopy extends Notifier {
                 }
             };
             FilePath sourcePath = sourceRepo.prepareSource(infoProvider, buildTag);
-            destinationRepo.copyFrom(infoProvider, sourcePath, sourcePatterns, buildTag);
+            destinationRepo.copyFrom(infoProvider, sourcePath, patterns, buildTag);
         }
 
         return true;

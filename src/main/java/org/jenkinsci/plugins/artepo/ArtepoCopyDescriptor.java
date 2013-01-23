@@ -42,7 +42,7 @@ public class ArtepoCopyDescriptor extends BuildStepDescriptor<Publisher> {
     public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
         Repo sourceRepo = newRepoInstance(req, formData, "sourceRepo");
         Repo destinationRepo = newRepoInstance(req, formData, "destinationRepo");
-        List<BackupSource> sourcePatterns = req.bindJSONToList(BackupSource.class,
+        List<SourcePattern> sourcePatterns = req.bindJSONToList(SourcePattern.class,
                 formData.get("sourcePatterns"));
 
         return new ArtepoCopy(sourceRepo, destinationRepo, sourcePatterns);
