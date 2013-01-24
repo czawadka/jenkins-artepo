@@ -22,7 +22,7 @@ public class WorkspaceRepoTest extends AbstractRepoTest {
 
         WorkspaceRepoImpl impl = (WorkspaceRepoImpl)repo.createImpl(info);
 
-        Assert.assertEquals(workspacePath.getRemote(), impl.getPath());
+        Assert.assertEquals(workspacePath.getRemote(), impl.getWorkspacePath());
         Assert.assertSame(info, impl.getInfoProvider());
     }
 }

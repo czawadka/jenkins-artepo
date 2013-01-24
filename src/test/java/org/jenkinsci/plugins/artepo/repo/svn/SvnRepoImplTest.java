@@ -25,7 +25,7 @@ public class SvnRepoImplTest extends AbstractRepoImplTest {
     @Override
     protected Object createRealRepository() throws IOException, InterruptedException {
         try {
-            return svnHelper.createRepository(toFile(createTempSubDir(null)));
+            return svnHelper.createRepository(toFile(util.createTempSubDir(null)));
         } catch (SVNException e) {
             throw new RuntimeException(e);
         }
@@ -47,7 +47,7 @@ public class SvnRepoImplTest extends AbstractRepoImplTest {
         try {
             SVNURL url = (SVNURL)realRepository;
             if (files!=null && files.length>0) {
-                FilePath wcPath = createTempSubDir("addRealRepositoryFiles");
+                FilePath wcPath = util.createTempSubDir("addRealRepositoryFiles");
                 svnHelper.checkout(toFile(wcPath), url, null);
 
                 for (String file : files) {

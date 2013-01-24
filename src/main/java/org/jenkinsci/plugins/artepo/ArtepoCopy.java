@@ -3,12 +3,14 @@ package org.jenkinsci.plugins.artepo;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.*;
+import hudson.model.AbstractBuild;
+import hudson.model.BuildListener;
+import hudson.model.Result;
+import hudson.model.TaskListener;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import org.jenkinsci.plugins.artepo.repo.Repo;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
-import org.jenkinsci.plugins.artepo.repo.workspace.WorkspaceRepo;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
@@ -19,12 +21,14 @@ public class ArtepoCopy extends Notifier {
     private Repo destinationRepo;
     private List<SourcePattern> patterns;
     private String buildTag;
+    transient private SourceRepoStrategy sourceRepoStrategy;
 
     @DataBoundConstructor
     public ArtepoCopy(Repo destinationRepo, List<SourcePattern> patterns) {
         this.destinationRepo = destinationRepo;
         this.patterns = patterns;
         this.buildTag = null;
+        this.sourceRepoStrategy = new DefaultSourceRepoStrategy();
     }
 
     public Repo getDestinationRepo() {
@@ -49,6 +53,14 @@ public class ArtepoCopy extends Notifier {
 
     public void setBuildTag(String buildTag) {
         this.buildTag = buildTag;
+    }
+
+    public SourceRepoStrategy getSourceRepoStrategy() {
+        return sourceRepoStrategy;
+    }
+
+    public void setSourceRepoStrategy(SourceRepoStrategy sourceRepoStrategy) {
+        this.sourceRepoStrategy = sourceRepoStrategy;
     }
 
     public BuildStepMonitor getRequiredMonitorService() {
@@ -82,7 +94,7 @@ public class ArtepoCopy extends Notifier {
                 }
             };
 
-            Repo sourceRepo = detectSourceRepo(build);
+            Repo sourceRepo = getSourceRepoStrategy().getSourceRepo(this, build, launcher, listener);
             Repo destinationRepo = getDestinationRepo();
 
             listener.getLogger().println("Copy "+patterns+" from "+sourceRepo+" to "+destinationRepo);
@@ -91,14 +103,6 @@ public class ArtepoCopy extends Notifier {
         }
 
         return true;
-    }
-
-    private Repo detectSourceRepo(AbstractBuild<?, ?> build) {
-        ArtepoCopy projectArtepo = (ArtepoCopy) ((Project)build.getProject()).getPublisher(getDescriptor());
-        if (projectArtepo!=null)
-            return projectArtepo.getDestinationRepo();
-        else
-            return new WorkspaceRepo();
     }
 
     private boolean isCopyAllowed(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {

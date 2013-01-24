@@ -14,12 +14,12 @@ public class FileRepoImplTest extends AbstractRepoImplTest {
     protected List<String> listRealRepository(Object realRepository, String buildTag) throws IOException, InterruptedException {
         FilePath repoDir = (FilePath)realRepository;
         FilePath buildDir = repoDir.child(buildTag);
-        return listDir(buildDir);
+        return util.listDirPaths(buildDir);
     }
 
     @Override
     protected Object createRealRepository() throws IOException, InterruptedException {
-        return createTempSubDir(null);
+        return util.createTempSubDir(null);
     }
 
     @Override

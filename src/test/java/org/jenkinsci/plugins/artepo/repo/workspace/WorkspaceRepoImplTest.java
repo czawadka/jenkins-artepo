@@ -4,23 +4,44 @@ import hudson.FilePath;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImplTest;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
-import org.jenkinsci.plugins.artepo.repo.file.FileRepoImpl;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.tmatesoft.svn.core.SVNException;
 
 import java.io.IOException;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+
 public class WorkspaceRepoImplTest extends AbstractRepoImplTest {
+
+    @Test
+    @Ignore
+    @Override
+    public void prepareSourcesThrowsBuildTagNotFoundException() throws IOException, InterruptedException, SVNException {
+        // intentionally empty, don't want to run test from super class
+    }
+
+    @Test
+    public void prepareSourcesIgnoresBuildTag() throws IOException, InterruptedException, SVNException {
+        // prepare repo
+        Object realRepository = createRealRepository();
+
+        AbstractRepoImpl impl = createRepoImpl(realRepository);
+        FilePath source = impl.prepareSource("nonexisting");
+
+        assertEquals(realRepository, source);
+    }
 
     @Override
     protected List<String> listRealRepository(Object realRepository, String buildTag) throws IOException, InterruptedException {
-        FilePath repoDir = (FilePath)realRepository;
-        FilePath buildDir = repoDir.child(buildTag);
-        return listDir(buildDir);
+        FilePath workspaceDir = (FilePath)realRepository;
+        return util.listDirPaths(workspaceDir);
     }
 
     @Override
     protected Object createRealRepository() throws IOException, InterruptedException {
-        return createTempSubDir(null);
+        return util.createTempSubDir(null);
     }
 
     @Override
@@ -35,11 +56,10 @@ public class WorkspaceRepoImplTest extends AbstractRepoImplTest {
             throws IOException, InterruptedException {
 
         if (files!=null && files.length>0) {
-            FilePath wcPath = (FilePath)realRepository;
-            wcPath = wcPath.child(buildTag);
+            FilePath workspacePath = (FilePath)realRepository;
 
             for (String file : files) {
-                FilePath filePath = wcPath.child(file);
+                FilePath filePath = workspacePath.child(file);
                 filePath.getParent().mkdirs();
                 filePath.write(file, "UTF-8");
             }
@@ -50,6 +70,6 @@ public class WorkspaceRepoImplTest extends AbstractRepoImplTest {
     protected AbstractRepoImpl createRepoImpl(Object realRepository) throws IOException, InterruptedException {
         String path = realRepository.toString();
         RepoInfoProvider infoProvider = createInfoProvider();
-        return new FileRepoImpl(infoProvider, path);
+        return new WorkspaceRepoImpl(infoProvider, path);
     }
 }

@@ -1,7 +1,8 @@
 package org.jenkinsci.plugins.artepo.repo;
 
 import hudson.FilePath;
-import org.jenkinsci.plugins.artepo.AbstractTest;
+import org.jenkinsci.plugins.artepo.FileUtil;
+import org.junit.After;
 import org.junit.Test;
 import org.tmatesoft.svn.core.SVNException;
 
@@ -9,15 +10,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 
-abstract public class AbstractRepoImplTest extends AbstractTest {
+abstract public class AbstractRepoImplTest {
     protected PrintStream logger;
     protected ByteArrayOutputStream loggerStream;
+    protected FileUtil util = new FileUtil();
 
     @Test
     public void prepareSourcesCopiesFiles() throws IOException, InterruptedException, SVNException {
@@ -43,7 +44,7 @@ abstract public class AbstractRepoImplTest extends AbstractTest {
     @Test
     public void copyFromToEmptyRepository() throws IOException, InterruptedException, SVNException {
         Object realRepository = createRealRepository();
-        FilePath source = createTempSubDir(null);
+        FilePath source = util.createTempSubDir(null);
         replaceFiles(source, "a.txt", "b.txt");
 
         AbstractRepoImpl impl = createRepoImpl(realRepository);
@@ -56,7 +57,7 @@ abstract public class AbstractRepoImplTest extends AbstractTest {
     @Test
     public void copyFromCanDeleteOldFiles() throws IOException, InterruptedException, SVNException {
         Object realRepository = createRealRepository();
-        FilePath source = createTempSubDir(null);
+        FilePath source = util.createTempSubDir(null);
         AbstractRepoImpl impl = createRepoImpl(realRepository);
 
         replaceFiles(source, "a.txt", "b.txt");
@@ -71,7 +72,7 @@ abstract public class AbstractRepoImplTest extends AbstractTest {
     @Test
     public void copyFromCanCreateNonExistingPath() throws IOException, InterruptedException, SVNException {
         Object realRepository = prepareNonExistingRealRepository();
-        FilePath source = createTempSubDir(null);
+        FilePath source = util.createTempSubDir(null);
         replaceFiles(source, "a.txt", "b.txt");
 
         AbstractRepoImpl impl = createRepoImpl(realRepository);
@@ -81,30 +82,13 @@ abstract public class AbstractRepoImplTest extends AbstractTest {
         assertThat(repositoryPaths, containsInAnyOrder("a.txt", "b.txt"));
     }
 
+    @After
+    public void tearDown() throws Exception {
+        util.close();
+    }
+
     protected List<String> listSource(FilePath source) throws IOException, InterruptedException {
-        return listDir(source);
-    }
-
-    protected List<String> listDir(FilePath source) throws IOException, InterruptedException {
-        FilePath[] files = listDirFiles(source);
-        return filesToPaths(source, files);
-    }
-
-    protected FilePath[] listDirFiles(FilePath source) throws IOException, InterruptedException {
-        return source.list("**/*", null, true);
-    }
-
-    protected List<String> filesToPaths(FilePath source, FilePath[] files) throws IOException, InterruptedException {
-        ArrayList<String> paths = new ArrayList<String>(files.length);
-        String sourceName = source.getRemote();
-        for (FilePath file : files) {
-            String path = file.getRemote();
-            path = path.substring(sourceName.length()+1);
-            if (file.isDirectory())
-                path += "/";
-            paths.add(path);
-        }
-        return paths;
+        return util.listDirPaths(source);
     }
 
     abstract protected List<String> listRealRepository(Object realRepository, String buildTag)
@@ -143,13 +127,13 @@ abstract public class AbstractRepoImplTest extends AbstractTest {
     }
     protected RepoInfoProvider createInfoProvider(FilePath workspacePath) throws IOException, InterruptedException {
         final PrintStream logger = createLogger();
-        final FilePath realWorkspacePath = workspacePath!=null ? workspacePath : createTempSubDir("workspace");
+        final FilePath realWorkspacePath = workspacePath!=null ? workspacePath : util.createTempSubDir("workspace");
         return new RepoInfoProvider() {
             public boolean isBuildActive() {
                 return true;
             }
             public FilePath getTempPath() {
-                return getTempBaseDir();
+                return util.getTempBaseDir();
             }
             public PrintStream getLogger() {
                 return logger;
