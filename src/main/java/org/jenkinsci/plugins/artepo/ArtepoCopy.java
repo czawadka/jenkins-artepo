@@ -15,6 +15,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.util.List;
 
 public class ArtepoCopy extends Notifier {
@@ -28,7 +29,13 @@ public class ArtepoCopy extends Notifier {
         this.destinationRepo = destinationRepo;
         this.patterns = patterns;
         this.buildTag = null;
+
+        readResolve();
+    }
+
+    private Object readResolve() {
         this.sourceRepoStrategy = new DefaultSourceRepoStrategy();
+        return this;
     }
 
     public Repo getDestinationRepo() {
