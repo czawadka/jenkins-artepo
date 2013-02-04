@@ -30,4 +30,13 @@ PRD copy can be created using promotion "PRD" which uses Artepo Copy as promotio
 
 Known issues
 ============
-* Not visible repository configuration in promotion after config screen load. Workaround: click repository type to show repository configuration.
+* Not visible repository configuration in promotion after config screen load. Workaround: click repository type
+  to show repository configuration.
+
+
+TODO
+====
+* file repo: clean build copies for main level artepo
+* generic: provide source respository promotion name because build's cleanup process may cause build is not available
+  at main level
+* svn repo: clean working copies if not used for more then xxx days
