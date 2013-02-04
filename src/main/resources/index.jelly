@@ -1,6 +1,5 @@
-<!--
-  This view is used to render the installed plugins page.
--->
 <div>
-  This plugin is a sample to explain how to write a Jenkins plugin.
+    This plugin implements copying of artifacts between promoted builds
+    (see [Promoted Builds Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Promoted+Builds+Plugin)
+    for more on concept of build promotions).
 </div>
