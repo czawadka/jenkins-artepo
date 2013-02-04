@@ -21,14 +21,12 @@ import java.util.List;
 public class ArtepoCopy extends Notifier {
     private Repo destinationRepo;
     private List<SourcePattern> patterns;
-    private String buildTag;
     transient private SourceRepoStrategy sourceRepoStrategy;
 
     @DataBoundConstructor
     public ArtepoCopy(Repo destinationRepo, List<SourcePattern> patterns) {
         this.destinationRepo = destinationRepo;
         this.patterns = patterns;
-        this.buildTag = null;
 
         readResolve();
     }
@@ -52,14 +50,6 @@ public class ArtepoCopy extends Notifier {
 
     public void setPatterns(List<SourcePattern> patterns) {
         this.patterns = patterns;
-    }
-
-    public String getBuildTag() {
-        return buildTag;
-    }
-
-    public void setBuildTag(String buildTag) {
-        this.buildTag = buildTag;
     }
 
     public SourceRepoStrategy getSourceRepoStrategy() {
@@ -122,7 +112,7 @@ public class ArtepoCopy extends Notifier {
 
     private String getResolvedBuildTag(AbstractBuild<?, ?> build, TaskListener listener) throws IOException, InterruptedException {
         EnvVars env = build.getEnvironment(listener);
-        String buildTag = this.buildTag;
+        String buildTag = null;
         if (buildTag!=null && buildTag.trim().length()>0) {
             buildTag = env.expand(buildTag.trim());
         } else {
@@ -133,5 +123,7 @@ public class ArtepoCopy extends Notifier {
         }
         return buildTag;
     }
+
+
 
 }
