@@ -24,9 +24,13 @@ public class ArtepoTempCleanupThread extends AsyncPeriodicWork {
      */
     static public final boolean disabled = Boolean.getBoolean(ArtepoTempCleanupThread.class.getName()+".disabled");
     /**
-     * Number of days after which temp repository will be removed
+     * How often (in hours) clean should be run
      */
-    static public final int DAYS_TO_CLEAN_AFTER = 14;
+    static public final int frequency = Integer.getInteger(ArtepoTempCleanupThread.class.getName() + ".frequency", 2);
+    /**
+     * Number of days temporary/work dirs are kept
+     */
+    static public final int daysToKeep = Integer.getInteger(ArtepoTempCleanupThread.class.getName() + ".daysToKeep", 7);
 
     public ArtepoTempCleanupThread() {
         super("artepo temp clean-up");
@@ -78,7 +82,7 @@ public class ArtepoTempCleanupThread extends AsyncPeriodicWork {
         } else {
             long now = System.currentTimeMillis();
             long tstamp = dir.lastModified();
-            if (tstamp + DAYS_TO_CLEAN_AFTER * DAY > now) {
+            if (tstamp + daysToKeep * DAY > now) {
                 LOGGER.fine("Directory "+dir+" is only "+ Util.getTimeSpanString(now-tstamp)+" old, so not deleting");
                 return false;
             }
@@ -98,6 +102,6 @@ public class ArtepoTempCleanupThread extends AsyncPeriodicWork {
 
     @Override
     public long getRecurrencePeriod() {
-        return DAY;
+        return frequency * HOUR;
     }
 }
