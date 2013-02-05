@@ -6,11 +6,11 @@ import hudson.Launcher;
 import hudson.model.*;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
+import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.artepo.repo.Repo;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
@@ -72,7 +72,7 @@ public class ArtepoCopy extends Notifier {
 
             listener.getLogger().println("Copy "+patterns+" from "+sourceRepo+" to "+destinationRepo);
 
-            FilePath tempPath = getTempPath(build);
+            FilePath tempPath = createTempPath(build.getProject().getRootProject());
             String buildTag = getResolvedBuildTag(build, listener);
             RepoInfoProvider infoProvider = new BuildRepoInfoProvider(build, tempPath, listener);
 
@@ -83,19 +83,24 @@ public class ArtepoCopy extends Notifier {
         return true;
     }
 
-    private FilePath getTempPath(AbstractBuild<?, ?> build) {
-        AbstractProject project = build.getProject().getRootProject();
-        FilePath baseTempPath = new FilePath(new File(System.getProperty("java.io.tmpdir")));
-        FilePath tempPath = baseTempPath.child(ArtepoUtil.PLUGIN_NAME+"/"+project.getName());
+    static public FilePath getTempPath(AbstractProject<?, ?> project, Node node) throws IOException, InterruptedException {
+        FilePath baseTempPath = ArtepoUtil.getRemoteTempPath(node);
+        if (baseTempPath==null)
+            return null; // node is offline
+        return baseTempPath.child(ArtepoUtil.PLUGIN_NAME+"/"+project.getRootProject().getName());
+    }
+
+    static public FilePath createTempPath(AbstractProject<?, ?> project) throws IOException, InterruptedException {
+        FilePath tempPath = getTempPath(project, null);
+        if (tempPath.exists())
+            tempPath.touch(System.currentTimeMillis());
+        else
+            tempPath.mkdirs();
         return tempPath;
     }
 
     private boolean isCopyAllowed(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
-        if (build.getResult().isWorseThan(Result.SUCCESS)) {
-            return false;
-        } else {
-            return true;
-        }
+        return build.getResult().isBetterOrEqualTo(Result.UNSTABLE);
     }
 
     private String getResolvedBuildTag(AbstractBuild<?, ?> build, TaskListener listener) throws IOException, InterruptedException {

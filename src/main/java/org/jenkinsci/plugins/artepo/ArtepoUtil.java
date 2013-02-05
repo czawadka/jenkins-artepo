@@ -1,6 +1,9 @@
 package org.jenkinsci.plugins.artepo;
 
 import hudson.FilePath;
+import hudson.model.Node;
+import hudson.remoting.Callable;
+import hudson.remoting.VirtualChannel;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
@@ -63,4 +66,27 @@ public class ArtepoUtil {
     static public void deleteRecursive(File file) throws IOException, InterruptedException {
         new FilePath(file).deleteRecursive();
     }
+
+    static public FilePath getRemoteTempPath(VirtualChannel channel) throws IOException, InterruptedException {
+        String temp;
+        if (channel==null)
+            temp = getSystemTempPathCallable.call();
+        else
+            temp = channel.call(getSystemTempPathCallable);
+        return new FilePath(channel, temp);
+    }
+    static public FilePath getRemoteTempPath(Node node) throws IOException, InterruptedException {
+        if (node==null)
+            return getRemoteTempPath((VirtualChannel)null);
+        VirtualChannel channel = node.getChannel();
+        if (channel==null)
+            return null; // node is offline
+        return getRemoteTempPath(channel);
+    }
+
+    static protected Callable<String, RuntimeException> getSystemTempPathCallable = new Callable<String, RuntimeException>() {
+            public String call() {
+                return System.getProperty("java.io.tmpdir");
+            }
+        };
 }
