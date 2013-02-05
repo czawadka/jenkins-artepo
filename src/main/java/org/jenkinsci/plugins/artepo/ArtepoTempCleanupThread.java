@@ -45,7 +45,7 @@ public class ArtepoTempCleanupThread extends AsyncPeriodicWork {
 
             Jenkins jenkins = Jenkins.getInstance();
             this.projects = Util.createSubList(jenkins.getItemMap().values(), AbstractProject.class);
-            this.listener = null;
+            this.listener = listener;
 
             for (Node node : jenkins.getNodes()) {
                 cleanNode(node);
