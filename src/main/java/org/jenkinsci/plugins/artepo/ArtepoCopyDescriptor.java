@@ -43,8 +43,9 @@ public class ArtepoCopyDescriptor extends BuildStepDescriptor<Publisher> {
         Repo destinationRepo = newRepoInstance(req, formData, "destinationRepo");
         List<SourcePattern> sourcePatterns = req.bindJSONToList(SourcePattern.class,
                 formData.get("patterns"));
+        String sourcePromotionName = formData.getString("sourcePromotionName");
 
-        return new ArtepoCopy(destinationRepo, sourcePatterns);
+        return new ArtepoCopy(destinationRepo, sourcePatterns, sourcePromotionName);
     }
 
     private Repo newRepoInstance(StaplerRequest req, JSONObject formData, String repoName)

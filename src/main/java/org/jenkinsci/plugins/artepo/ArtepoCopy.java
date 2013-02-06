@@ -6,7 +6,6 @@ import hudson.Launcher;
 import hudson.model.*;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
-import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.artepo.repo.Repo;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -18,12 +17,14 @@ import java.util.List;
 public class ArtepoCopy extends Notifier {
     private Repo destinationRepo;
     private List<SourcePattern> patterns;
+    private String sourcePromotionName;
     transient private SourceRepoStrategy sourceRepoStrategy;
 
     @DataBoundConstructor
-    public ArtepoCopy(Repo destinationRepo, List<SourcePattern> patterns) {
+    public ArtepoCopy(Repo destinationRepo, List<SourcePattern> patterns, String sourcePromotionName) {
         this.destinationRepo = destinationRepo;
         this.patterns = patterns;
+        this.sourcePromotionName = sourcePromotionName;
 
         readResolve();
     }
@@ -55,6 +56,14 @@ public class ArtepoCopy extends Notifier {
 
     public void setSourceRepoStrategy(SourceRepoStrategy sourceRepoStrategy) {
         this.sourceRepoStrategy = sourceRepoStrategy;
+    }
+
+    public String getSourcePromotionName() {
+        return sourcePromotionName;
+    }
+
+    public void setSourcePromotionName(String sourcePromotionName) {
+        this.sourcePromotionName = sourcePromotionName;
     }
 
     public BuildStepMonitor getRequiredMonitorService() {

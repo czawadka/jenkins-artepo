@@ -1,5 +1,5 @@
 <div>
-    This plugin implements copying of artifacts between promoted builds
-    (see [Promoted Builds Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Promoted+Builds+Plugin)
-    for more on concept of build promotions).
+    Artepo plugin implements copying of artifacts between promotions of given build.
+    See <a href="https://wiki.jenkins-ci.org/display/JENKINS/Promoted+Builds+Plugin">Promoted Builds Plugin</a>
+    for more on concept of build promotions.
 </div>

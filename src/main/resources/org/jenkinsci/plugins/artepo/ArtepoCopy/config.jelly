@@ -18,27 +18,30 @@
         </f:section>
     </f:entry>
 
-    <f:section title="Source patterns" description="">
-    <f:block>
-        <div>
-            Source patterns define files to be copied from source repository. A source repository is a workspace
-            (if we are main post-build Artepo Copy action) or repository taken from main post-build Artepo Copy
-            (if we are NON main post-build Artepo Copy action).
-        </div>
-        <f:repeatable field="patterns" noAddButton="true" minimum="1">
-            <table width="100%">
-                <st:include page="config.jelly" class="${descriptor.clazz}"/>
+    <f:section title="Source options" description="">
+    <f:advanced>
+        <f:entry title="Source promotion name:" field="sourcePromotionName">
+            <f:textbox />
+        </f:entry>
+        <f:block>
+            <div>
+                Source patterns:
+            </div>
+            <f:repeatable field="patterns" noAddButton="true" minimum="1">
+                <table width="100%">
+                    <st:include page="config.jelly" class="${descriptor.clazz}"/>
 
-                <f:entry>
-                    <div align="right">
-                        <input type="button" value="${%Add more ...}" class="repeatable-add show-if-last" />
-                        <input type="button" value="${%Delete source}" class="repeatable-delete show-if-not-only" style="margin-left: 1em;" />
-                    </div>
-                </f:entry>
+                    <f:entry>
+                        <div align="right">
+                            <input type="button" value="${%Add patterns ...}" class="repeatable-add show-if-last" />
+                            <input type="button" value="${%Delete patterns}" class="repeatable-delete show-if-not-only" style="margin-left: 1em;" />
+                        </div>
+                    </f:entry>
 
-            </table>
-        </f:repeatable>
-    </f:block>
+                </table>
+            </f:repeatable>
+        </f:block>
+     </f:advanced>
     </f:section>
 
 </j:jelly>
