@@ -16,7 +16,7 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 
-public class IntegrationTestBase extends HudsonTestCase {
+abstract public class IntegrationTestBase extends HudsonTestCase {
     FileUtil util = new FileUtil();
 
     @Override
