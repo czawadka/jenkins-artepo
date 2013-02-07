@@ -1,0 +1,5 @@
+1.1.0
+- svn repo: clean working copies if not used for more then xxx days
+- file repo: for main level artepo only last 3 build's artifacts are kept, the rest is removed
+- added ability to configure source promotion name because cleanup process may remove from main artepo
+  build artifacts for given build number

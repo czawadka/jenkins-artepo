@@ -36,7 +36,4 @@ Known issues
 
 TODO
 ====
-* file repo: clean build copies for main level artepo
-* generic: provide source respository promotion name because build's cleanup process may cause build is not available
-  at main level
-* svn repo: clean working copies if not used for more then xxx days
+* add GIT repository
