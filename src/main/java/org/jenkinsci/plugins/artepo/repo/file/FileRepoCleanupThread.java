@@ -90,10 +90,10 @@ public class FileRepoCleanupThread extends AsyncPeriodicWork {
         String path = fileRepo.getPath();
         FilePath dir = new FilePath(new File(path));
         List<FilePath> subDirs = dir.list();
-        if (subDirs==null)
+        if (subDirs == null || subDirs.size() <= buildsToKeep)
             return Collections.EMPTY_LIST;
         Collections.sort(subDirs, newestBuildsAreLastComparator);
-        return subDirs.subList(0, subDirs.size()-buildsToKeep);
+        return subDirs.subList(0, subDirs.size() - buildsToKeep);
     }
 
     void delete(FilePath dir) throws InterruptedException {

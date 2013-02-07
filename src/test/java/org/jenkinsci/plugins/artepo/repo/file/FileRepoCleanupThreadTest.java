@@ -34,9 +34,9 @@ public class FileRepoCleanupThreadTest {
     }
 
     @Test
-    public void testFindDirsToDeleteLessThenBuildsToKeep() throws Exception {
+    public void testFindDirsToDeleteIsEmptyIfBuildsAreLessThenToKeep() throws Exception {
         FilePath basePath = util.createTempDir();
-        for (int i = 0; i < FileRepoCleanupThread.buildsToKeep; i++) {
+        for (int i = 0; i < FileRepoCleanupThread.buildsToKeep-2; i++) {
             basePath.child(String.valueOf(i)).mkdirs();
         }
         FileRepo repo = new FileRepo(basePath.getRemote());

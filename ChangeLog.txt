@@ -1,3 +1,6 @@
+1.1.1
+- file repo: fix IllegalArgumentException when number of builds is less then buildsToKeep
+
 1.1.0
 - svn repo: clean working copies if not used for more then xxx days
 - file repo: for main level artepo only last 3 build's artifacts are kept, the rest is removed
