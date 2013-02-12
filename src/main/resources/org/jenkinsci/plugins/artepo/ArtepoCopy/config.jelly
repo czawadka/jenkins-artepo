@@ -23,24 +23,9 @@
         <f:entry title="Source promotion name:" field="sourcePromotionName">
             <f:textbox />
         </f:entry>
-        <f:block>
-            <div>
-                Source patterns:
-            </div>
-            <f:repeatable field="patterns" noAddButton="true" minimum="1">
-                <table width="100%">
-                    <st:include page="config.jelly" class="${descriptor.clazz}"/>
-
-                    <f:entry>
-                        <div align="right">
-                            <input type="button" value="${%Add patterns ...}" class="repeatable-add show-if-last" />
-                            <input type="button" value="${%Delete patterns}" class="repeatable-delete show-if-not-only" style="margin-left: 1em;" />
-                        </div>
-                    </f:entry>
-
-                </table>
-            </f:repeatable>
-        </f:block>
+        <f:entry field="copyPattern">
+            <st:include page="${descriptor.configPage}" class="${descriptor.clazz}"/>
+        </f:entry>
      </f:advanced>
     </f:section>
 

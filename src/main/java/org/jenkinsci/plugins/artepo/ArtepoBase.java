@@ -89,6 +89,10 @@ public class ArtepoBase extends Notifier {
         return buildTag;
     }
 
+    protected boolean isCopyAllowed(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
+        return build.getResult().isBetterOrEqualTo(Result.UNSTABLE);
+    }
+
     protected static class BuildRepoInfoProvider implements RepoInfoProvider {
         private final AbstractBuild<?, ?> build;
         private final FilePath tempPath;

@@ -4,9 +4,9 @@ import hudson.Extension;
 import hudson.model.Descriptor;
 
 @Extension
-public class SourcePatternDescriptor extends Descriptor<CopyPattern> {
+public class CopyPatternDescriptor extends Descriptor<CopyPattern> {
 
-    public SourcePatternDescriptor() {
+    public CopyPatternDescriptor() {
         super(CopyPattern.class);
     }
 

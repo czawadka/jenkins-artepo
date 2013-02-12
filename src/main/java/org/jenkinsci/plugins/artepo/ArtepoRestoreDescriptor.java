@@ -40,19 +40,8 @@ public class ArtepoRestoreDescriptor extends BuildStepDescriptor<Publisher> {
 
     @Override
     public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-        Repo destinationRepo = newRepoInstance(req, formData, "destinationRepo");
-        List<CopyPattern> copyPatterns = req.bindJSONToList(CopyPattern.class,
-                formData.get("patterns"));
         String sourcePromotionName = formData.getString("sourcePromotionName");
 
-        return new ArtepoCopy(destinationRepo, copyPatterns, sourcePromotionName);
-    }
-
-    private Repo newRepoInstance(StaplerRequest req, JSONObject formData, String repoName)
-            throws FormException {
-        JSONObject repoFormData = formData.getJSONObject(repoName);
-        String repoType = repoFormData.getString("value");
-        RepoDescriptor repoDescriptor = AbstractRepo.getDescriptorByType(repoType);
-        return repoDescriptor!=null ? repoDescriptor.newInstance(req, repoFormData) : null;
+        return new ArtepoRestore(sourcePromotionName);
     }
 }

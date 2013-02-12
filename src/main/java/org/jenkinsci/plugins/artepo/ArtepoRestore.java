@@ -15,6 +15,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class ArtepoRestore extends ArtepoBase {
@@ -38,27 +39,19 @@ public class ArtepoRestore extends ArtepoBase {
                 return false;
             }
 
-            List<CopyPattern> mainPatterns = mainArtepo.getPatterns();
-            CopyPattern mainPattern = mainPatterns.get(0);
+            CopyPattern mainCopyPattern = mainArtepo.getCopyPattern();
             Repo sourceRepo = findSourceRepo(build, launcher, listener);
-            Repo destinationRepo = new FileRepo(build.getWorkspace().child(mainPattern.getSubFolder()).getRemote());
+            Repo destinationRepo = new WorkspaceRepo(mainCopyPattern.getSubFolder());
 
             String buildTag = getResolvedBuildTag(build, listener);
             RepoInfoProvider infoProvider = createRepoInfoProvider(build, listener);
 
             FilePath sourcePath = sourceRepo.prepareSource(infoProvider, buildTag);
-            CopyPattern pattern = new CopyPattern(null, mainPattern.getIncludes(), mainPattern.getExcludes());
-            listener.getLogger().println("Copy "+pattern+" from "+sourceRepo+" to "+destinationRepo);
-            destinationRepo.copyFrom(infoProvider, pattern, );
-                ArtepoUtil.sync(workspacePath.child(mainPattern.getSubFolder()), sourcePath, Arrays.asList(pattern));
-            }
+            listener.getLogger().println("Restore artifacts from " + sourceRepo + " to " + destinationRepo);
+            destinationRepo.copyFrom(infoProvider, sourcePath, Collections.EMPTY_LIST, buildTag);
         }
 
         return true;
-    }
-
-    private boolean isCopyAllowed(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
-        return build.getResult().isBetterOrEqualTo(Result.UNSTABLE);
     }
 
 }

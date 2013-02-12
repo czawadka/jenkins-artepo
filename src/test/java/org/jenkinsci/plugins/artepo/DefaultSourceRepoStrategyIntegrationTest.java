@@ -10,8 +10,8 @@ public class DefaultSourceRepoStrategyIntegrationTest extends IntegrationTestBas
     public void testGetSourceRepoFromPromotionArtepo() throws Exception {
         FreeStyleProject project = createProjectWithBuilder("a.txt", "b.txt");
         createMainArtepo(project);
-        CreatedPromotion foo = createPromotion(project, "foo");
-        CreatedPromotion bar = createPromotion(project, "bar");
+        CreatedPromotion<ArtepoCopy> foo = createPromotionWithArtepoCopy(project, "foo");
+        CreatedPromotion<ArtepoCopy> bar = createPromotionWithArtepoCopy(project, "bar");
         bar.artepo.setSourcePromotionName(foo.promotion.getName());
 
         // run & automatically self promote build
@@ -25,8 +25,8 @@ public class DefaultSourceRepoStrategyIntegrationTest extends IntegrationTestBas
 
     public void testGetSourceRepoFromMainArtepo() throws Exception {
         FreeStyleProject project = createProjectWithBuilder("a.txt", "b.txt");
-        CreatedArtepo mainArtepo = createMainArtepo(project);
-        CreatedPromotion foo = createPromotion(project, "foo");
+        CreatedArtepo<ArtepoCopy> mainArtepo = createMainArtepo(project);
+        CreatedPromotion<ArtepoCopy> foo = createPromotionWithArtepoCopy(project, "foo");
 
         // run & automatically self promote build
         FreeStyleBuild build = build(project);
