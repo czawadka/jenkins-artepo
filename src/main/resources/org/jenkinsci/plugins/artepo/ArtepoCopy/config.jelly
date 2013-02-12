@@ -18,15 +18,18 @@
         </f:section>
     </f:entry>
 
-    <f:section title="Source options" description="">
     <f:advanced>
+    <f:section title="Source options" description="">
         <f:entry title="Source promotion name:" field="sourcePromotionName">
             <f:textbox />
         </f:entry>
-        <f:entry field="copyPattern">
-            <st:include page="${descriptor.configPage}" class="${descriptor.clazz}"/>
-        </f:entry>
-     </f:advanced>
+        <j:set var="copyPatternDescriptor" value="${app.getDescriptor('org.jenkinsci.plugins.artepo.CopyPattern')}" />
+        <f:rowSet name="copyPattern">
+            <j:set var="descriptor" value="${copyPatternDescriptor}" />
+            <j:set var="instance" value="${instance.copyPattern}" />
+            <st:include page="${copyPatternDescriptor.configPage}" class="${copyPatternDescriptor.clazz}"/>
+        </f:rowSet>
     </f:section>
+    </f:advanced>
 
 </j:jelly>
