@@ -1,7 +1,7 @@
 package org.jenkinsci.plugins.artepo.repo;
 
 import hudson.FilePath;
-import org.jenkinsci.plugins.artepo.SourcePattern;
+import org.jenkinsci.plugins.artepo.CopyPattern;
 
 import java.io.IOException;
 import java.util.List;
@@ -15,7 +15,7 @@ abstract public class AbstractRepoImpl {
 
     abstract public FilePath prepareSource(String buildTag) throws InterruptedException, IOException, BuildTagNotFoundException;
 
-    abstract public void copyFrom(FilePath source, List<SourcePattern> patterns, String buildTag)
+    abstract public void copyFrom(FilePath source, List<CopyPattern> patterns, String buildTag)
             throws InterruptedException, IOException;
 
     public RepoInfoProvider getInfoProvider() {

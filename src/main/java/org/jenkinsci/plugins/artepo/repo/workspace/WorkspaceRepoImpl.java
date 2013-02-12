@@ -2,7 +2,7 @@ package org.jenkinsci.plugins.artepo.repo.workspace;
 
 import hudson.FilePath;
 import org.jenkinsci.plugins.artepo.ArtepoUtil;
-import org.jenkinsci.plugins.artepo.SourcePattern;
+import org.jenkinsci.plugins.artepo.CopyPattern;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 
@@ -22,7 +22,7 @@ public class WorkspaceRepoImpl extends AbstractRepoImpl {
         return getWorkspaceFilePath();
     }
 
-    public void copyFrom(FilePath sourcePath, List<SourcePattern> patterns, String buildTag)
+    public void copyFrom(FilePath sourcePath, List<CopyPattern> patterns, String buildTag)
             throws InterruptedException, IOException {
         FilePath destinationPath = getWorkspaceFilePath();
 

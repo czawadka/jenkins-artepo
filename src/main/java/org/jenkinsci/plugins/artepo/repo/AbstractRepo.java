@@ -4,7 +4,7 @@ import hudson.DescriptorExtensionList;
 import hudson.FilePath;
 import hudson.model.Describable;
 import hudson.model.Hudson;
-import org.jenkinsci.plugins.artepo.SourcePattern;
+import org.jenkinsci.plugins.artepo.CopyPattern;
 import org.jenkinsci.plugins.artepo.repo.file.FileRepo;
 
 import java.io.IOException;
@@ -19,7 +19,7 @@ abstract public class AbstractRepo implements Describable<AbstractRepo>, Repo {
         return impl.prepareSource(buildTag);
     }
 
-    public void copyFrom(RepoInfoProvider infoProvider, FilePath sourcePath, List<SourcePattern> patterns, String buildTag) throws InterruptedException, IOException {
+    public void copyFrom(RepoInfoProvider infoProvider, FilePath sourcePath, List<CopyPattern> patterns, String buildTag) throws InterruptedException, IOException {
         AbstractRepoImpl impl = createImpl(infoProvider);
         impl.copyFrom(sourcePath, patterns, buildTag);
     }

@@ -4,10 +4,10 @@ import hudson.Extension;
 import hudson.model.Descriptor;
 
 @Extension
-public class SourcePatternDescriptor extends Descriptor<SourcePattern> {
+public class SourcePatternDescriptor extends Descriptor<CopyPattern> {
 
     public SourcePatternDescriptor() {
-        super(SourcePattern.class);
+        super(CopyPattern.class);
     }
 
     @Override

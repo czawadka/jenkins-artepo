@@ -20,7 +20,7 @@ import java.util.List;
  */
 public class DefaultSourceRepoStrategy implements SourceRepoStrategy {
 
-    public Repo getSourceRepo(ArtepoCopy requester, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
+    public Repo getSourceRepo(ArtepoBase requester, AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) {
         AbstractProject rootProject = build.getProject().getRootProject();
         Repo repo;
         if ((repo=findByPromotionName(rootProject, requester))!=null) {
@@ -36,7 +36,7 @@ public class DefaultSourceRepoStrategy implements SourceRepoStrategy {
         return repo;
     }
 
-    protected Repo findByPromotionName(AbstractProject project, ArtepoCopy requester) {
+    protected Repo findByPromotionName(AbstractProject project, ArtepoBase requester) {
         JobPropertyImpl promotionProperty = (JobPropertyImpl) project.getProperty(JobPropertyImpl.class);
         if (promotionProperty==null)
             return null;
@@ -52,8 +52,8 @@ public class DefaultSourceRepoStrategy implements SourceRepoStrategy {
         return artepos.get(0).getDestinationRepo();
     }
 
-    protected Repo findSourceRepoByMainArtepo(AbstractProject project, ArtepoCopy requester) {
-        ArtepoCopy artepo = (ArtepoCopy) ((Project)project).getPublisher(Jenkins.getInstance().getDescriptor(ArtepoCopy.class));
+    protected Repo findSourceRepoByMainArtepo(AbstractProject project, ArtepoBase requester) {
+        ArtepoCopy artepo = ArtepoUtil.findMainArtepo(project);
         if (artepo==null || artepo==requester)
             return null;
         return artepo.getDestinationRepo();

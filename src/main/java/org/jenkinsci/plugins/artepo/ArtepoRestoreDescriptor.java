@@ -13,10 +13,10 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.util.List;
 
 @Extension
-public class ArtepoCopyDescriptor extends BuildStepDescriptor<Publisher> {
+public class ArtepoRestoreDescriptor extends BuildStepDescriptor<Publisher> {
 
-    public ArtepoCopyDescriptor() {
-        super(ArtepoCopy.class);
+    public ArtepoRestoreDescriptor() {
+        super(ArtepoRestore.class);
         load();
     }
 
@@ -27,7 +27,7 @@ public class ArtepoCopyDescriptor extends BuildStepDescriptor<Publisher> {
 
     @Override
     public String getDisplayName() {
-        return "Artepo Copy";
+        return "Artepo Restore";
     }
 
     public List<RepoDescriptor> getRepoDescriptors() {
