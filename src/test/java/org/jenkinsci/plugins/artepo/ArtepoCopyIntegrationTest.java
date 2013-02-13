@@ -8,7 +8,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 
-public class ArtepoIntegrationTest extends IntegrationTestBase {
+public class ArtepoCopyIntegrationTest extends IntegrationTestBase {
     FileUtil util = new FileUtil();
 
     @Override
@@ -32,7 +32,7 @@ public class ArtepoIntegrationTest extends IntegrationTestBase {
     public void testCopyPromotedBuildArtifacts() throws Exception {
         FreeStyleProject project = createProjectWithBuilder("a.txt", "b.txt");
         createMainArtepo(project);
-        CreatedPromotion fooPromotion = createPromotion(project, "foo");
+        CreatedPromotion fooPromotion = createPromotionWithArtepoCopy(project, "foo");
 
         // run & automatically self promote build
         FreeStyleBuild build = build(project);

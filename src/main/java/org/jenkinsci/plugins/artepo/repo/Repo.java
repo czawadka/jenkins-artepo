@@ -1,7 +1,7 @@
 package org.jenkinsci.plugins.artepo.repo;
 
 import hudson.FilePath;
-import org.jenkinsci.plugins.artepo.SourcePattern;
+import org.jenkinsci.plugins.artepo.CopyPattern;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,6 +34,6 @@ public interface Repo {
      * @throws IOException
      */
     abstract public void copyFrom(RepoInfoProvider infoProvider, FilePath sourcePath,
-                                  List<SourcePattern> patterns, String buildTag)
+                                  List<CopyPattern> patterns, String buildTag)
             throws InterruptedException, IOException;
 }

@@ -2,7 +2,7 @@ package org.jenkinsci.plugins.artepo.repo.svn;
 
 import hudson.FilePath;
 import org.jenkinsci.plugins.artepo.ArtepoUtil;
-import org.jenkinsci.plugins.artepo.SourcePattern;
+import org.jenkinsci.plugins.artepo.CopyPattern;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
 import org.jenkinsci.plugins.artepo.repo.BuildTagNotFoundException;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
@@ -103,7 +103,7 @@ public class SvnRepoImpl extends AbstractRepoImpl {
         return infoProvider.getTempPath().child(nameFromUrl);
     }
 
-    public void copyFrom(FilePath source, List<SourcePattern> patterns, String buildTag)
+    public void copyFrom(FilePath source, List<CopyPattern> patterns, String buildTag)
             throws InterruptedException, IOException {
         try {
 
