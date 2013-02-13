@@ -1,3 +1,8 @@
+1.2.0
+- added ArtepoRestore to restore copied artifacts into workspace (eg. for use with other plugins)
+- in ArtepoCopy removed ability to define many copy patterns in favor of only one copy pattern
+    due to being able to properly restore artifacts in ArtepoRestore
+
 1.1.1
 - file repo: fix IllegalArgumentException when number of builds is less then buildsToKeep
 
