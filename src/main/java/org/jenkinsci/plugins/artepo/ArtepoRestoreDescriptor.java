@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.artepo;
 
 import hudson.Extension;
 import hudson.model.AbstractProject;
+import hudson.model.Project;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Publisher;
 import net.sf.json.JSONObject;
@@ -22,7 +23,10 @@ public class ArtepoRestoreDescriptor extends BuildStepDescriptor<Publisher> {
 
     @Override
     public boolean isApplicable(Class<? extends AbstractProject> jobType) {
-        return true;
+        // disable artepo restore for root level project because it is pointless
+        // to restore artifacts - they exists in workspace already
+        boolean isMainProject = Project.class.isAssignableFrom(jobType);
+        return !isMainProject;
     }
 
     @Override
