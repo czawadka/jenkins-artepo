@@ -5,19 +5,19 @@ import hudson.model.Descriptor;
 import hudson.model.Hudson;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public class SourcePattern implements Describable<SourcePattern> {
+public class CopyPattern implements Describable<CopyPattern> {
     private String subFolder;
     private String includes;
     private String excludes;
 
     @DataBoundConstructor
-    public SourcePattern(String subFolder, String includes, String excludes) {
+    public CopyPattern(String subFolder, String includes, String excludes) {
         this.subFolder = subFolder;
         this.includes = includes;
         this.excludes = excludes;
     }
 
-    public SourcePattern() {
+    public CopyPattern() {
         this("","","");
     }
 
@@ -47,7 +47,7 @@ public class SourcePattern implements Describable<SourcePattern> {
 
     @Override
     public String toString() {
-        String subFolder = this.subFolder!=null && this.subFolder.length()>0 ? this.subFolder+"/" : "";
+        String subFolder = this.subFolder !=null && this.subFolder.length()>0 ? this.subFolder +"/" : "";
         String includes = this.includes!=null ? this.includes : "";
         String excludes = this.excludes!=null && this.excludes.length()>0 ? "{-" + this.excludes +'}' : "";
         return subFolder
@@ -55,7 +55,7 @@ public class SourcePattern implements Describable<SourcePattern> {
                 + excludes;
     }
 
-    public Descriptor<SourcePattern> getDescriptor() {
+    public Descriptor<CopyPattern> getDescriptor() {
         return Hudson.getInstance().getDescriptor(getClass());
     }
 

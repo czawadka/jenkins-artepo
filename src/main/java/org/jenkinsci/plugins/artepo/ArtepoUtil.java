@@ -1,9 +1,11 @@
 package org.jenkinsci.plugins.artepo;
 
 import hudson.FilePath;
+import hudson.model.AbstractProject;
 import hudson.model.Node;
 import hudson.remoting.Callable;
 import hudson.remoting.VirtualChannel;
+import jenkins.model.Jenkins;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
@@ -23,7 +25,7 @@ public class ArtepoUtil {
         return new File(filePath.getRemote());
     }
 
-    static public void sync(FilePath dst, FilePath src, Collection<SourcePattern> items) throws IOException, InterruptedException {
+    static public void sync(FilePath dst, FilePath src, Collection<CopyPattern> patterns) throws IOException, InterruptedException {
         try {
             Sync syncTask = new Sync();
             syncTask.setProject(new Project());
@@ -32,13 +34,16 @@ public class ArtepoUtil {
             syncTask.setOverwrite(true);
             syncTask.setIncludeEmptyDirs(false);
 
-            if (items==null || items.isEmpty()) {
-                items = new ArrayList<SourcePattern>(1);
-                items.add(new SourcePattern(null, null, null));
+            if (patterns==null || patterns.isEmpty()) {
+                patterns = new ArrayList<CopyPattern>(1);
+                patterns.add(new CopyPattern(null, null, null));
             }
 
-            for(SourcePattern item : items) {
-                FilePath itemSrc = item.getSubFolder()==null||item.getSubFolder().length()==0 ? src : src.child(item.getSubFolder());
+            for(CopyPattern item : patterns) {
+                FilePath itemSrc =
+                        item.getSubFolder()==null || item.getSubFolder().length()==0
+                        ? src
+                        : src.child(item.getSubFolder());
                 String includes = item.getIncludes();
                 FileSet fs = hudson.Util.createFileSet(toFile(itemSrc),
                         includes == null ? "" : includes,
@@ -59,7 +64,7 @@ public class ArtepoUtil {
             syncTask.execute();
 
         } catch (BuildException e) {
-            throw new IOException("Failed to sync " + src + "/" + items + " to " + dst, e);
+            throw new IOException("Failed to sync " + src + "/" + patterns + " to " + dst, e);
         }
     }
 
@@ -89,4 +94,9 @@ public class ArtepoUtil {
                 return System.getProperty("java.io.tmpdir");
             }
         };
+
+    static public ArtepoCopy findMainArtepo(AbstractProject project) {
+        hudson.model.Project rootProject = (hudson.model.Project) project.getRootProject();
+        return  (ArtepoCopy) rootProject.getPublisher(Jenkins.getInstance().getDescriptor(ArtepoCopy.class));
+    }
 }

@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.artepo;
 
 import hudson.Extension;
 import hudson.model.AbstractProject;
+import hudson.model.Project;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Publisher;
 import net.sf.json.JSONObject;
@@ -13,21 +14,24 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.util.List;
 
 @Extension
-public class ArtepoCopyDescriptor extends BuildStepDescriptor<Publisher> {
+public class ArtepoRestoreDescriptor extends BuildStepDescriptor<Publisher> {
 
-    public ArtepoCopyDescriptor() {
-        super(ArtepoCopy.class);
+    public ArtepoRestoreDescriptor() {
+        super(ArtepoRestore.class);
         load();
     }
 
     @Override
     public boolean isApplicable(Class<? extends AbstractProject> jobType) {
-        return true;
+        // disable artepo restore for root level project because it is pointless
+        // to restore artifacts - they exists in workspace already
+        boolean isMainProject = Project.class.isAssignableFrom(jobType);
+        return !isMainProject;
     }
 
     @Override
     public String getDisplayName() {
-        return "Artepo Copy";
+        return "Artepo Restore";
     }
 
     public List<RepoDescriptor> getRepoDescriptors() {
@@ -40,18 +44,8 @@ public class ArtepoCopyDescriptor extends BuildStepDescriptor<Publisher> {
 
     @Override
     public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-        Repo destinationRepo = newRepoInstance(req, formData, "destinationRepo");
-        CopyPattern copyPattern = req.bindJSON(CopyPattern.class, formData.getJSONObject("copyPattern"));
         String sourcePromotionName = formData.getString("sourcePromotionName");
 
-        return new ArtepoCopy(destinationRepo, copyPattern, sourcePromotionName);
-    }
-
-    private Repo newRepoInstance(StaplerRequest req, JSONObject formData, String repoName)
-            throws FormException {
-        JSONObject repoFormData = formData.getJSONObject(repoName);
-        String repoType = repoFormData.getString("value");
-        RepoDescriptor repoDescriptor = AbstractRepo.getDescriptorByType(repoType);
-        return repoDescriptor!=null ? repoDescriptor.newInstance(req, repoFormData) : null;
+        return new ArtepoRestore(sourcePromotionName);
     }
 }

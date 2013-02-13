@@ -35,19 +35,26 @@ abstract public class IntegrationTestBase extends HudsonTestCase {
     }
 
     protected CreatedArtepo createMainArtepo(FreeStyleProject project) throws IOException, InterruptedException {
-        CreatedArtepo artepo = createArtepo("main");
+        CreatedArtepo artepo = createArtepoCopy("main");
         project.getPublishersList().add(artepo.artepo);
 
         return artepo;
     }
 
-    protected CreatedArtepo createArtepo(String subDir) throws IOException, InterruptedException {
+    protected CreatedArtepo<ArtepoCopy> createArtepoCopy(String subDir) throws IOException, InterruptedException {
         // promoted artepo
         FilePath repoPath = util.createTempSubDir(getName()+"-"+subDir);
         FileRepo repo = new FileRepo(repoPath.getRemote());
-        ArtepoCopy artepo = new ArtepoCopy(repo, null, null);
+        ArtepoCopy artepo = new ArtepoCopy(repo, new CopyPattern(null, null, null), null);
 
-        return new CreatedArtepo(artepo, repo, repoPath);
+        return new CreatedArtepo<ArtepoCopy>(artepo, repo, repoPath);
+    }
+
+    protected CreatedArtepo<ArtepoRestore> createArtepoRestore() throws IOException, InterruptedException {
+        // promoted artepo
+        ArtepoRestore artepo = new ArtepoRestore(null);
+
+        return new CreatedArtepo(artepo, null, null);
     }
 
     protected JobPropertyImpl createPromotionProperty(FreeStyleProject project) throws IOException, InterruptedException, Descriptor.FormException {
@@ -59,13 +66,28 @@ abstract public class IntegrationTestBase extends HudsonTestCase {
         return promotionProperty;
     }
 
-    protected CreatedPromotion createPromotion(FreeStyleProject project, String promotionName) throws IOException, InterruptedException, Descriptor.FormException {
+    protected PromotionProcess createManualPromotion(FreeStyleProject project, String promotionName) throws IOException, InterruptedException, Descriptor.FormException {
         JobPropertyImpl promotionProperty = createPromotionProperty(project);
 
         PromotionProcess promotion = promotionProperty.addProcess(promotionName);
         promotion.conditions.add(new ManualCondition());
 
-        CreatedArtepo artepo = createArtepo(promotionName);
+        return promotion;
+    }
+
+    protected CreatedPromotion<ArtepoCopy> createPromotionWithArtepoCopy(FreeStyleProject project, String promotionName) throws IOException, InterruptedException, Descriptor.FormException {
+        PromotionProcess promotion = createManualPromotion(project, promotionName);
+
+        CreatedArtepo<ArtepoCopy> artepo = createArtepoCopy(promotionName);
+        promotion.getBuildSteps().add(artepo.artepo);
+
+        return new CreatedPromotion(promotion, artepo);
+    }
+
+    protected CreatedPromotion<ArtepoRestore> createPromotionWithArtepoRestore(FreeStyleProject project, String promotionName) throws IOException, InterruptedException, Descriptor.FormException {
+        PromotionProcess promotion = createManualPromotion(project, promotionName);
+
+        CreatedArtepo<ArtepoRestore> artepo = createArtepoRestore();
         promotion.getBuildSteps().add(artepo.artepo);
 
         return new CreatedPromotion(promotion, artepo);
@@ -92,24 +114,24 @@ abstract public class IntegrationTestBase extends HudsonTestCase {
         return promotion;
     }
 
-    static class CreatedArtepo {
-        public ArtepoCopy artepo;
+    static class CreatedArtepo<T extends ArtepoBase> {
+        public T artepo;
         public FileRepo repo;
         public FilePath repoPath;
 
-        CreatedArtepo(ArtepoCopy artepo, FileRepo repo, FilePath repoPath) {
+        CreatedArtepo(T artepo, FileRepo repo, FilePath repoPath) {
             this.artepo = artepo;
             this.repo = repo;
             this.repoPath = repoPath;
         }
     }
-    static class CreatedPromotion extends CreatedArtepo {
+    static class CreatedPromotion<T extends ArtepoBase> extends CreatedArtepo<T> {
         public PromotionProcess promotion;
 
-        CreatedPromotion(PromotionProcess promotion, CreatedArtepo createdArtepo) {
+        CreatedPromotion(PromotionProcess promotion, CreatedArtepo<T> createdArtepo) {
             this(promotion, createdArtepo.artepo, createdArtepo.repo, createdArtepo.repoPath);
         }
-        CreatedPromotion(PromotionProcess promotion, ArtepoCopy artepo, FileRepo repo, FilePath repoPath) {
+        CreatedPromotion(PromotionProcess promotion, T artepo, FileRepo repo, FilePath repoPath) {
             super(artepo, repo, repoPath);
             this.promotion = promotion;
         }

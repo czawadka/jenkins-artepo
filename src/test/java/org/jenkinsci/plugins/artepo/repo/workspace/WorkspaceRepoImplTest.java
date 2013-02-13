@@ -19,7 +19,7 @@ public class WorkspaceRepoImplTest extends AbstractRepoImplTest {
     @Ignore
     @Override
     public void prepareSourcesThrowsBuildTagNotFoundException() throws IOException, InterruptedException, SVNException {
-        // intentionally empty, don't want to run test from super class
+        // intentionally ignore, workspace repo doesn't implement tagging functionality
     }
 
     @Test

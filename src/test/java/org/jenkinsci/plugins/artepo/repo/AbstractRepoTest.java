@@ -1,7 +1,7 @@
 package org.jenkinsci.plugins.artepo.repo;
 
 import hudson.FilePath;
-import org.jenkinsci.plugins.artepo.SourcePattern;
+import org.jenkinsci.plugins.artepo.CopyPattern;
 import org.junit.Test;
 import org.mockito.Answers;
 
@@ -40,7 +40,7 @@ abstract public class AbstractRepoTest {
         createRepoMock();
 
         FilePath source = new FilePath(new File("."));
-        List<SourcePattern> patterns = new ArrayList<SourcePattern>();
+        List<CopyPattern> patterns = new ArrayList<CopyPattern>();
         String buildTag = "some build tag";
         repo.copyFrom(null, source, patterns, buildTag);
 

@@ -25,4 +25,16 @@ public class WorkspaceRepoTest extends AbstractRepoTest {
         Assert.assertEquals(workspacePath.getRemote(), impl.getWorkspacePath());
         Assert.assertSame(info, impl.getInfoProvider());
     }
+
+    @Test
+    public void testCreateImplWithSubFolder() throws Exception {
+        final FilePath workspacePath = new FilePath(new File("."));
+        RepoInfoProvider info = createRepoInfoProvider(true, null, null, workspacePath);
+        WorkspaceRepo repo = new WorkspaceRepo("someSubFolder");
+
+        WorkspaceRepoImpl impl = (WorkspaceRepoImpl)repo.createImpl(info);
+
+        Assert.assertEquals(workspacePath.child("someSubFolder").getRemote(), impl.getWorkspacePath());
+        Assert.assertSame(info, impl.getInfoProvider());
+    }
 }
