@@ -36,4 +36,7 @@ Known issues
 
 TODO
 ====
-* add GIT repository
+* svn: simplify svn logging
+* svn: instantly check configuration validity (doCheck)
+* svn: allow to change repo url without crashing
+* add GIT repository (?)
