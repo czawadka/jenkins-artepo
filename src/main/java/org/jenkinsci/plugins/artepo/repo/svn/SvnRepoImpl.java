@@ -37,9 +37,13 @@ public class SvnRepoImpl extends AbstractRepoImpl {
     SvnHelper createSvnHelper() {
         SvnHelper svnHelper = new SvnHelper();
         svnHelper.setAuthentication(user, password);
+        final int urlBaseLength = url==null ? 0 : url.length();
         svnHelper.setEventHandler(new ISVNEventHandler() {
             public void handleEvent(SVNEvent event, double progress) throws SVNException {
-                infoProvider.getLogger().println(event.toString());
+                String path = event.getURL()!=null ? event.getURL().toString().substring(urlBaseLength) : null;
+                if (path!=null && path.startsWith("/"))
+                    path = path.substring(1);
+                infoProvider.getLogger().println(event.getAction() + " " + (path!=null ? path : ""));
             }
 
             public void checkCancelled() throws SVNCancelException {
