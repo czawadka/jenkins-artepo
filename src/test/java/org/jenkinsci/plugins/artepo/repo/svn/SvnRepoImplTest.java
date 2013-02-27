@@ -1,18 +1,23 @@
 package org.jenkinsci.plugins.artepo.repo.svn;
 
 import hudson.FilePath;
+import org.jenkinsci.plugins.artepo.RegularExpressionMatcher;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImplTest;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 import org.junit.Before;
+import org.junit.Test;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
 import org.tmatesoft.svn.core.wc.SVNRevision;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.jenkinsci.plugins.artepo.ArtepoUtil.toFile;
+import static org.junit.Assert.assertThat;
 
 public class SvnRepoImplTest extends AbstractRepoImplTest {
     TestSvnHelper svnHelper;
@@ -89,4 +94,15 @@ public class SvnRepoImplTest extends AbstractRepoImplTest {
         }
     }
 
+    @Test
+    public void svnLogContainsShortPath() throws IOException, InterruptedException, SVNException {
+        // prepare repo
+        Object realRepository = createRealRepositoryWithFiles("101", "a.txt");
+
+        AbstractRepoImpl impl = createRepoImpl(realRepository);
+        impl.prepareSource(null);
+
+        String log = getLog();
+        assertThat(log, RegularExpressionMatcher.matchesPattern("(?m)^update_add a.txt$"));
+    }
 }

@@ -155,4 +155,12 @@ abstract public class AbstractRepoImplTest {
         }
     }
 
+    protected String getLog() {
+        logger.flush();
+        try {
+            return new String(loggerStream.toByteArray(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

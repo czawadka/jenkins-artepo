@@ -1,3 +1,7 @@
+1.2.1
+- simplify svn log with a short path
+- fix ClassCastException on maven projects (Issue #1)
+
 1.2.0
 - added ArtepoRestore to restore copied artifacts into workspace (eg. for use with other plugins)
 - in ArtepoCopy removed ability to define many copy patterns in favor of only one copy pattern
