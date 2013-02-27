@@ -34,7 +34,7 @@ abstract public class IntegrationTestBase extends HudsonTestCase {
         return project;
     }
 
-    protected CreatedArtepo createMainArtepo(FreeStyleProject project) throws IOException, InterruptedException {
+    protected CreatedArtepo createMainArtepo(AbstractProject project) throws IOException, InterruptedException {
         CreatedArtepo artepo = createArtepoCopy("main");
         project.getPublishersList().add(artepo.artepo);
 

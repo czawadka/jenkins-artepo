@@ -2,9 +2,12 @@ package org.jenkinsci.plugins.artepo;
 
 import hudson.FilePath;
 import hudson.model.AbstractProject;
+import hudson.model.Descriptor;
 import hudson.model.Node;
 import hudson.remoting.Callable;
 import hudson.remoting.VirtualChannel;
+import hudson.tasks.Publisher;
+import hudson.util.DescribableList;
 import jenkins.model.Jenkins;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -96,7 +99,18 @@ public class ArtepoUtil {
         };
 
     static public ArtepoCopy findMainArtepo(AbstractProject project) {
-        hudson.model.Project rootProject = (hudson.model.Project) project.getRootProject();
-        return  (ArtepoCopy) rootProject.getPublisher(Jenkins.getInstance().getDescriptor(ArtepoCopy.class));
+        AbstractProject rootProject = project.getRootProject();
+        DescribableList<Publisher,Descriptor<Publisher>> publishers = rootProject.getPublishersList();
+        Descriptor<Publisher> artepoCopyDescriptor = Jenkins.getInstance().getDescriptor(ArtepoCopy.class);
+
+        ArtepoCopy artepoCopy = null;
+        for (Publisher p : publishers) {
+            if(p.getDescriptor()==artepoCopyDescriptor) {
+                artepoCopy = (ArtepoCopy)p;
+                break;
+            }
+        }
+
+        return  artepoCopy;
     }
 }
