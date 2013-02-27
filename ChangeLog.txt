@@ -1,4 +1,4 @@
-1.3.0
+1.2.1
 - simplify svn log with a short path
 - fix ClassCastException on maven projects (Issue #1)
 
