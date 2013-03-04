@@ -1,3 +1,6 @@
+1.2.2
+- fix StringIndexOutOfBoundsException in SvnRepoImpl$1.handleEvent() (Issue #2)
+
 1.2.1
 - simplify svn log with a short path
 - fix ClassCastException on maven projects (Issue #1)

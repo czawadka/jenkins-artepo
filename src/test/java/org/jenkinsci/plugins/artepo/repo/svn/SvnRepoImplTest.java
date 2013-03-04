@@ -105,4 +105,17 @@ public class SvnRepoImplTest extends AbstractRepoImplTest {
         String log = getLog();
         assertThat(log, RegularExpressionMatcher.matchesPattern("(?m)^update_add a.txt$"));
     }
+
+    @Test
+    public void svnLogHandleEndingWithSlash() throws IOException, InterruptedException, SVNException {
+        // prepare repo
+        Object realRepository = createRealRepositoryWithFiles("101", "a.txt");
+
+        AbstractRepoImpl impl = createRepoImpl(realRepository.toString()+"/");
+        impl.prepareSource(null);
+
+        String log = getLog();
+        assertThat(log, RegularExpressionMatcher.matchesPattern("(?m)^update_add a.txt$"));
+    }
+
 }
