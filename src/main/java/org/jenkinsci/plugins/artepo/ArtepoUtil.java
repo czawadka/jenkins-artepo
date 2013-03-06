@@ -14,6 +14,7 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.Sync;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.selectors.SelectorUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,10 @@ public class ArtepoUtil {
         return new File(filePath.getRemote());
     }
 
+    static private final String[] SYNC_DST_PRESERVE_PATTERNS = {
+            "/.git", "/.git/" + SelectorUtils.DEEP_TREE_MATCH,
+            "/.svn", "/.svn/" + SelectorUtils.DEEP_TREE_MATCH,
+    };
     static public void sync(FilePath dst, FilePath src, Collection<CopyPattern> patterns) throws IOException, InterruptedException {
         try {
             Sync syncTask = new Sync();
@@ -56,11 +61,11 @@ public class ArtepoUtil {
             }
 
             Sync.SyncTarget preserveInDst = new Sync.SyncTarget();
-            String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
-            for (String defaultExclude : defaultExcludes) {
-                preserveInDst.createInclude().setName(defaultExclude);
+            String[] preservePatterns = SYNC_DST_PRESERVE_PATTERNS;
+            for (String preservePattern : preservePatterns) {
+                preserveInDst.createInclude().setName(preservePattern);
             }
-            preserveInDst.setDefaultexcludes(false);
+            preserveInDst.setDefaultexcludes(true);
             syncTask.addPreserveInTarget(preserveInDst);
             syncTask.setIncludeEmptyDirs(true);
 
