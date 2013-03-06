@@ -1,6 +1,10 @@
 package org.jenkinsci.plugins.artepo;
 
 import hudson.FilePath;
+import hudson.Util;
+import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.types.FileSet;
 
 import java.io.Closeable;
 import java.io.File;
@@ -49,13 +53,43 @@ public class FileUtil implements Closeable {
         }
     }
 
-    public List<FilePath> listDirFiles(FilePath source) throws IOException, InterruptedException {
-        return Arrays.asList(source.list("**/*", null, true));
+    public List<FilePath> listDirFiles(FilePath dir) throws IOException, InterruptedException {
+        return listDirFiles(dir, true);
+    }
+    public List<FilePath> listDirFiles(FilePath dir, boolean defaultExcludes) throws IOException, InterruptedException {
+        return listDirFiles(dir, null, null, defaultExcludes);
     }
 
-    public List<String> listDirPaths(FilePath source) throws IOException, InterruptedException {
-        Collection<FilePath> files = listDirFiles(source);
-        return filesToPaths(source, files);
+    public List<String> listDirPaths(FilePath dir) throws IOException, InterruptedException {
+        return listDirPaths(dir, true);
+    }
+    public List<String> listDirPaths(FilePath dir, boolean defaultExcludes) throws IOException, InterruptedException {
+        return listDirPaths(dir, null, null, defaultExcludes);
+    }
+    private static List<FilePath> listDirFiles(FilePath dir, String includes, String excludes, boolean defaultExcludes) throws IOException {
+        List<String> paths = listDirPaths(dir, includes, excludes, defaultExcludes);
+        List<FilePath> files = new ArrayList<FilePath>(paths.size());
+        for (String path : paths) {
+            files.add(dir.child(path));
+        }
+        return files;
+    }
+    private static List<String> listDirPaths(FilePath dir, String includes, String excludes, boolean defaultExcludes) throws IOException {
+        if (includes==null)
+            includes = "**/*";
+        FileSet fs = Util.createFileSet(ArtepoUtil.toFile(dir), includes, excludes);
+        fs.setDefaultexcludes(defaultExcludes);
+        DirectoryScanner ds = fs.getDirectoryScanner(new Project());
+        String[] files = ds.getIncludedFiles();
+        String[] directories = ds.getIncludedDirectories();
+        List<String> paths = new ArrayList<String>(files.length+directories.length);
+        for (String file : files) {
+            paths.add(file.replace('\\', '/'));
+        }
+        for (String directory : directories) {
+            paths.add(directory.replace('\\', '/')+"/");
+        }
+        return paths;
     }
 
     public List<String> filesToPaths(FilePath baseFile, Collection<FilePath> files) throws IOException, InterruptedException {
@@ -70,6 +104,22 @@ public class FileUtil implements Closeable {
             paths.add(path);
         }
         return paths;
+    }
+
+    public FilePath replaceFiles(FilePath dir, String... newPaths) throws IOException, InterruptedException {
+        List<FilePath> paths = dir.list();
+        for (FilePath path : paths) {
+            if (path.isDirectory())
+                path.deleteRecursive();
+            else
+                path.delete();
+        }
+
+        for(String fileName : newPaths) {
+            dir.child(fileName).write(fileName, "UTF-8");
+        }
+
+        return dir;
     }
 
 }

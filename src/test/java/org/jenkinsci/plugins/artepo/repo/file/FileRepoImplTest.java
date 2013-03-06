@@ -13,8 +13,25 @@ public class FileRepoImplTest extends AbstractRepoImplTest {
     @Override
     protected List<String> listRealRepository(Object realRepository, String buildTag) throws IOException, InterruptedException {
         FilePath repoDir = (FilePath)realRepository;
+        if (buildTag==null) {
+            buildTag = findLastBuildTag(repoDir);
+        }
         FilePath buildDir = repoDir.child(buildTag);
         return util.listDirPaths(buildDir);
+    }
+
+    private String findLastBuildTag(FilePath repoDir) throws IOException, InterruptedException {
+        List<FilePath> dirs = repoDir.listDirectories();
+        long maxLastModified = 0;
+        String buildTag = null;
+        for (FilePath dir : dirs) {
+            long lastModified = dir.lastModified();
+            if (maxLastModified<lastModified) {
+                maxLastModified = lastModified;
+                buildTag = dir.getBaseName();
+            }
+        }
+        return buildTag;
     }
 
     @Override
