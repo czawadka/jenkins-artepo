@@ -15,7 +15,7 @@ abstract public class AbstractRepoImpl {
 
     abstract public FilePath prepareSource(String buildTag) throws InterruptedException, IOException, BuildTagNotFoundException;
 
-    abstract public void copyFrom(FilePath source, List<CopyPattern> patterns, String buildTag)
+    abstract public void copyFrom(FilePath source, CopyPattern pattern, String buildTag)
             throws InterruptedException, IOException;
 
     public RepoInfoProvider getInfoProvider() {

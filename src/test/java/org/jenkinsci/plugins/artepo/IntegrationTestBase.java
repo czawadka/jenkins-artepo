@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.artepo;
 
 import hudson.FilePath;
+import hudson.maven.MavenModuleSet;
 import hudson.model.*;
 import hudson.plugins.promoted_builds.JobPropertyImpl;
 import hudson.plugins.promoted_builds.Promotion;
@@ -18,11 +19,40 @@ import java.util.concurrent.ExecutionException;
 
 abstract public class IntegrationTestBase extends HudsonTestCase {
     FileUtil util = new FileUtil();
+    Slave slave = null;
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        slave = createIntegrationTestSlave();
+    }
 
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
         util.close();
+    }
+    protected Slave createIntegrationTestSlave() throws Exception {
+        return createOnlineSlave();
+    }
+
+    @Override
+    protected FreeStyleProject createFreeStyleProject(String name) throws IOException {
+        FreeStyleProject project = super.createFreeStyleProject(name);
+        return assignSlaveNode(project);
+    }
+
+    @Override
+    protected MavenModuleSet createMavenProject(String name) throws IOException {
+        MavenModuleSet project = super.createMavenProject(name);
+        return assignSlaveNode(project);
+    }
+
+    protected <T extends AbstractProject> T assignSlaveNode(T project) throws IOException {
+        if (slave!=null) {
+            project.setAssignedNode(slave);
+        }
+        return project;
     }
 
     protected FreeStyleProject createProjectWithBuilder(String... files) throws IOException {

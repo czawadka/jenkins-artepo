@@ -3,6 +3,9 @@ package org.jenkinsci.plugins.artepo;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
+import hudson.remoting.Callable;
+import hudson.util.IOException2;
+import org.jenkinsci.plugins.artepo.repo.AbstractRepo;
 import org.jenkinsci.plugins.artepo.repo.Repo;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -46,13 +49,14 @@ public class ArtepoCopy extends ArtepoBase {
             Repo sourceRepo = findSourceRepo(build, launcher, listener);
             Repo destinationRepo = getDestinationRepo();
 
-            listener.getLogger().println("Copy "+copyPattern+" artifacts from "+sourceRepo+" to "+destinationRepo);
-
             String buildTag = getResolvedBuildTag(build, listener);
-            RepoInfoProvider infoProvider = createRepoInfoProvider(build, listener);
+            RepoInfoProvider infoProvider = createRepoInfoProvider(
+                    build.getProject().getRootProject().getName(),
+                    build.getWorkspace());
 
-            FilePath sourcePath = sourceRepo.prepareSource(infoProvider, buildTag);
-            destinationRepo.copyFrom(infoProvider, sourcePath, Arrays.asList(copyPattern), buildTag);
+            listener.getLogger().println("Copy "+copyPattern+" artifacts from "+sourceRepo+" to "+destinationRepo);
+            copy(build.getBuiltOn(), destinationRepo, sourceRepo, copyPattern,
+                    infoProvider, buildTag);
         }
 
         return true;

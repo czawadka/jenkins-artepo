@@ -22,11 +22,11 @@ public class WorkspaceRepoImpl extends AbstractRepoImpl {
         return getWorkspaceFilePath();
     }
 
-    public void copyFrom(FilePath sourcePath, List<CopyPattern> patterns, String buildTag)
+    public void copyFrom(FilePath sourcePath, CopyPattern pattern, String buildTag)
             throws InterruptedException, IOException {
         FilePath destinationPath = getWorkspaceFilePath();
 
-        ArtepoUtil.sync(destinationPath, sourcePath, patterns);
+        ArtepoUtil.sync(destinationPath, sourcePath, pattern);
     }
 
     protected FilePath getWorkspaceFilePath() {
