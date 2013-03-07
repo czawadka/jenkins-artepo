@@ -85,7 +85,7 @@ abstract public class AbstractRepoImplTest {
         AbstractRepoImpl impl2 = createRepoImpl(realRepository);
         impl2.copyFrom(source, Arrays.asList(distCopyPattern), "14");
 
-        List<String> repositoryPaths = listRealRepository(realRepository, null);
+        List<String> repositoryPaths = listRealRepository(realRepository, "14");
         assertThat(repositoryPaths, containsInAnyOrder("a.txt", "b.txt"));
     }
 
