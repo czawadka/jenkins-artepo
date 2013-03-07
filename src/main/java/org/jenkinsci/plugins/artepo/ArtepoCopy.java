@@ -1,6 +1,5 @@
 package org.jenkinsci.plugins.artepo;
 
-import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
@@ -10,7 +9,6 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 
 public class ArtepoCopy extends ArtepoBase {
     private Repo destinationRepo;
@@ -42,7 +40,7 @@ public class ArtepoCopy extends ArtepoBase {
     @Override
     public boolean perform(final AbstractBuild<?, ?> build, Launcher launcher, final BuildListener listener)
             throws InterruptedException, IOException {
-        if (!isCopyAllowed(build, launcher, listener)) {
+        if (!isBuildSuccessful(build, launcher, listener)) {
             listener.getLogger().println("Artepo copy cannot be run due to unsuccessful build");
         } else {
             Repo sourceRepo = findSourceRepo(build, launcher, listener);

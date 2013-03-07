@@ -4,19 +4,13 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
-import hudson.model.Result;
-import hudson.tasks.BuildStepMonitor;
-import hudson.tasks.Notifier;
 import org.jenkinsci.plugins.artepo.repo.Repo;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
-import org.jenkinsci.plugins.artepo.repo.file.FileRepo;
 import org.jenkinsci.plugins.artepo.repo.workspace.WorkspaceRepo;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 public class ArtepoRestore extends ArtepoBase {
 
@@ -30,7 +24,7 @@ public class ArtepoRestore extends ArtepoBase {
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener)
             throws InterruptedException, IOException {
-        if (!isCopyAllowed(build, launcher, listener)) {
+        if (!isBuildSuccessful(build, launcher, listener)) {
             listener.getLogger().println("Artepo restore cannot be run due to unsuccessful build");
         } else {
             ArtepoCopy mainArtepo = ArtepoUtil.findMainArtepo(build.getProject());

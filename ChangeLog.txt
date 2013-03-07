@@ -1,5 +1,6 @@
 1.2.3
 - fixed Artepo doesn't remove empty directories (Issue #3)
+- copy files only if build result is >=SUCCESS (previously >=UNSTABLE)
 
 1.2.2
 - fix StringIndexOutOfBoundsException in SvnRepoImpl$1.handleEvent() (Issue #2)
