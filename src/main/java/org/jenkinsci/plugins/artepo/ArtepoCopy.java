@@ -48,7 +48,6 @@ public class ArtepoCopy extends ArtepoBase {
 
             listener.getLogger().println("Copy "+copyPattern+" artifacts from "+sourceRepo+" to "+destinationRepo);
 
-            FilePath tempPath = createTempPath(build.getProject().getRootProject());
             String buildTag = getResolvedBuildTag(build, listener);
             RepoInfoProvider infoProvider = createRepoInfoProvider(build, listener);
 
