@@ -4,6 +4,7 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import org.jenkinsci.plugins.artepo.repo.AbstractRepo;
 import org.jenkinsci.plugins.artepo.repo.Repo;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 import org.jenkinsci.plugins.artepo.repo.workspace.WorkspaceRepo;
@@ -32,17 +33,18 @@ public class ArtepoRestore extends ArtepoBase {
                 listener.getLogger().println("Artepo restore cannot find main artepo");
                 return false;
             }
-
             CopyPattern mainCopyPattern = mainArtepo.getCopyPattern();
             Repo sourceRepo = findSourceRepo(build, launcher, listener);
             Repo destinationRepo = new WorkspaceRepo(mainCopyPattern.getSubFolder());
 
             String buildTag = getResolvedBuildTag(build, listener);
-            RepoInfoProvider infoProvider = createRepoInfoProvider(build, listener);
+            RepoInfoProvider infoProvider = createRepoInfoProvider(
+                    build.getProject().getRootProject().getName(),
+                    build.getWorkspace());
 
-            FilePath sourcePath = sourceRepo.prepareSource(infoProvider, buildTag);
             listener.getLogger().println("Restore artifacts from " + sourceRepo + " to " + destinationRepo);
-            destinationRepo.copyFrom(infoProvider, sourcePath, Collections.EMPTY_LIST, buildTag);
+            copy(build.getBuiltOn(), destinationRepo, sourceRepo, null,
+                    infoProvider, buildTag);
         }
 
         return true;

@@ -1,3 +1,6 @@
+1.2.4
+- run repo copy (prepareSources/copyFrom) on remote node (Issue #4)
+
 1.2.3
 - fixed Artepo doesn't remove empty directories (Issue #3)
 - copy files only if build result is >=SUCCESS (previously >=UNSTABLE)

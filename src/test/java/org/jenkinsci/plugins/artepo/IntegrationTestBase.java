@@ -1,12 +1,16 @@
 package org.jenkinsci.plugins.artepo;
 
 import hudson.FilePath;
+import hudson.maven.MavenModuleSet;
 import hudson.model.*;
 import hudson.plugins.promoted_builds.JobPropertyImpl;
 import hudson.plugins.promoted_builds.Promotion;
 import hudson.plugins.promoted_builds.PromotionProcess;
 import hudson.plugins.promoted_builds.conditions.ManualCondition;
+import hudson.slaves.ComputerListener;
+import hudson.slaves.SlaveComputer;
 import hudson.tasks.Builder;
+import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.artepo.repo.file.FileRepo;
 import org.jvnet.hudson.test.HudsonTestCase;
 
@@ -14,15 +18,70 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
 abstract public class IntegrationTestBase extends HudsonTestCase {
     FileUtil util = new FileUtil();
+    Slave slave = null;
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        createIntegrationSlave();
+    }
 
     @Override
     public void tearDown() throws Exception {
-        super.tearDown();
         util.close();
+        terminateIntegrationSlave();
+        super.tearDown();
+    }
+
+    protected void createIntegrationSlave() throws Exception {
+        slave = createOnlineSlave();
+    }
+
+    protected void terminateIntegrationSlave() throws Exception {
+        if (slave==null)
+            return;
+
+        SlaveComputer slaveComputer = slave.getComputer();
+        final CountDownLatch latch = new CountDownLatch(1);
+        ComputerListener waiter = new ComputerListener() {
+            @Override
+            public void onOffline(Computer c) {
+                latch.countDown();
+                unregister();
+            }
+        };
+        waiter.register();
+        Jenkins.getInstance().removeNode(slave);
+        latch.await();
+        // need to close slave log stream to avoid IOException due to removing temp dir but log is still open
+        slaveComputer.openLogFile().close();
+
+        slave = null;
+    }
+
+
+    @Override
+    protected FreeStyleProject createFreeStyleProject(String name) throws IOException {
+        FreeStyleProject project = super.createFreeStyleProject(name);
+        return assignSlaveNode(project);
+    }
+
+    @Override
+    protected MavenModuleSet createMavenProject(String name) throws IOException {
+        MavenModuleSet project = super.createMavenProject(name);
+        return assignSlaveNode(project);
+    }
+
+    protected <T extends AbstractProject> T assignSlaveNode(T project) throws IOException {
+        if (slave!=null) {
+            project.setAssignedNode(slave);
+        }
+        return project;
     }
 
     protected FreeStyleProject createProjectWithBuilder(String... files) throws IOException {
@@ -43,7 +102,7 @@ abstract public class IntegrationTestBase extends HudsonTestCase {
 
     protected CreatedArtepo<ArtepoCopy> createArtepoCopy(String subDir) throws IOException, InterruptedException {
         // promoted artepo
-        FilePath repoPath = util.createTempSubDir(getName()+"-"+subDir);
+        FilePath repoPath = util.createTempSubDir(getName() + "-" + subDir);
         FileRepo repo = new FileRepo(repoPath.getRemote());
         ArtepoCopy artepo = new ArtepoCopy(repo, new CopyPattern(null, null, null), null);
 
@@ -136,4 +195,5 @@ abstract public class IntegrationTestBase extends HudsonTestCase {
             this.promotion = promotion;
         }
     }
+
 }

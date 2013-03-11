@@ -27,12 +27,12 @@ public class FileRepoImpl extends AbstractRepoImpl {
         return buildPath;
     }
 
-    public void copyFrom(FilePath sourcePath, List<CopyPattern> patterns, String buildTag)
+    public void copyFrom(FilePath sourcePath, CopyPattern pattern, String buildTag)
             throws InterruptedException, IOException {
         FilePath destinationPath = new FilePath(new File(path)).child(buildTag);
         destinationPath.mkdirs();
 
-        ArtepoUtil.sync(destinationPath, sourcePath, patterns);
+        ArtepoUtil.sync(destinationPath, sourcePath, pattern);
     }
 
     public String getPath() {

@@ -4,6 +4,9 @@ import hudson.DescriptorExtensionList;
 import hudson.FilePath;
 import hudson.model.Describable;
 import hudson.model.Hudson;
+import hudson.model.Node;
+import hudson.remoting.Callable;
+import hudson.util.IOException2;
 import org.jenkinsci.plugins.artepo.CopyPattern;
 import org.jenkinsci.plugins.artepo.repo.file.FileRepo;
 
@@ -19,9 +22,9 @@ abstract public class AbstractRepo implements Describable<AbstractRepo>, Repo {
         return impl.prepareSource(buildTag);
     }
 
-    public void copyFrom(RepoInfoProvider infoProvider, FilePath sourcePath, List<CopyPattern> patterns, String buildTag) throws InterruptedException, IOException {
+    public void copyFrom(RepoInfoProvider infoProvider, FilePath sourcePath, CopyPattern pattern, String buildTag) throws InterruptedException, IOException {
         AbstractRepoImpl impl = createImpl(infoProvider);
-        impl.copyFrom(sourcePath, patterns, buildTag);
+        impl.copyFrom(sourcePath, pattern, buildTag);
     }
 
     public RepoDescriptor getDescriptor() {
@@ -43,5 +46,4 @@ abstract public class AbstractRepo implements Describable<AbstractRepo>, Repo {
     static public AbstractRepo getDefaultRepo() {
         return new FileRepo();
     }
-
 }
