@@ -8,8 +8,6 @@ import org.mockito.Answers;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -40,11 +38,10 @@ abstract public class AbstractRepoTest {
         createRepoMock();
 
         FilePath source = new FilePath(new File("."));
-        List<CopyPattern> patterns = new ArrayList<CopyPattern>();
         String buildTag = "some build tag";
-        repo.copyFrom(null, source, patterns, buildTag);
+        repo.copyFrom(null, source, null, buildTag);
 
-        verify(implMock, times(1)).copyFrom(source, patterns, buildTag);
+        verify(implMock, times(1)).copyFrom(source, null, buildTag);
     }
 
     protected void createImplMock() throws IOException, InterruptedException {
@@ -60,7 +57,7 @@ abstract public class AbstractRepoTest {
                 .thenAnswer(Answers.CALLS_REAL_METHODS.get());
         doAnswer(Answers.CALLS_REAL_METHODS.get())
                 .when(repo)
-                    .copyFrom(any(RepoInfoProvider.class), any(FilePath.class), anyList(), anyString());
+                    .copyFrom(any(RepoInfoProvider.class), any(FilePath.class), any(CopyPattern.class), anyString());
     }
 
     protected RepoInfoProvider createRepoInfoProvider() {

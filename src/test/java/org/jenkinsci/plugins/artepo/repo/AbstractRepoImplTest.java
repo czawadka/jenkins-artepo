@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.artepo.repo;
 
 import hudson.FilePath;
+import org.jenkinsci.plugins.artepo.CopyPattern;
 import org.jenkinsci.plugins.artepo.FileUtil;
 import org.junit.After;
 import org.junit.Test;
@@ -10,6 +11,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -45,7 +48,7 @@ abstract public class AbstractRepoImplTest {
     public void copyFromToEmptyRepository() throws IOException, InterruptedException, SVNException {
         Object realRepository = createRealRepository();
         FilePath source = util.createTempSubDir(null);
-        replaceFiles(source, "a.txt", "b.txt");
+        util.replaceFiles(source, "a.txt", "b.txt");
 
         AbstractRepoImpl impl = createRepoImpl(realRepository);
         impl.copyFrom(source, null, "13");
@@ -55,14 +58,14 @@ abstract public class AbstractRepoImplTest {
     }
 
     @Test
-    public void copyFromCanDeleteOldFiles() throws IOException, InterruptedException, SVNException {
+    public void copyFromNonEmptyDeleteOldFiles() throws IOException, InterruptedException, SVNException {
         Object realRepository = createRealRepository();
         FilePath source = util.createTempSubDir(null);
         AbstractRepoImpl impl = createRepoImpl(realRepository);
 
-        replaceFiles(source, "a.txt", "b.txt");
+        util.replaceFiles(source, "a.txt", "b.txt");
         impl.copyFrom(source, null, "13");
-        replaceFiles(source, "c.txt");
+        util.replaceFiles(source, "c.txt");
         impl.copyFrom(source, null, "14");
 
         List<String> repositoryPaths = listRealRepository(realRepository, "14");
@@ -70,10 +73,27 @@ abstract public class AbstractRepoImplTest {
     }
 
     @Test
+    public void copyFromSubFolderChangedToDist() throws IOException, InterruptedException, SVNException {
+        // case: "ups... I've commited . folder but should be commited only dist/ folder"
+        Object realRepository = createRealRepository();
+        FilePath source = util.createTempSubDir(null);
+        AbstractRepoImpl impl = createRepoImpl(realRepository);
+        util.replaceFiles(source, "build.xml", "dist/a.txt", "dist/b.txt");
+        impl.copyFrom(source, null, "13");
+
+        CopyPattern distCopyPattern = new CopyPattern("dist/", null, null);
+        AbstractRepoImpl impl2 = createRepoImpl(realRepository);
+        impl2.copyFrom(source, distCopyPattern, "14");
+
+        List<String> repositoryPaths = listRealRepository(realRepository, "14");
+        assertThat(repositoryPaths, containsInAnyOrder("a.txt", "b.txt"));
+    }
+
+    @Test
     public void copyFromCanCreateNonExistingPath() throws IOException, InterruptedException, SVNException {
         Object realRepository = prepareNonExistingRealRepository();
         FilePath source = util.createTempSubDir(null);
-        replaceFiles(source, "a.txt", "b.txt");
+        util.replaceFiles(source, "a.txt", "b.txt");
 
         AbstractRepoImpl impl = createRepoImpl(realRepository);
         impl.copyFrom(source, null, "13");
@@ -104,22 +124,6 @@ abstract public class AbstractRepoImplTest {
         Object realRepository = createRealRepository();
         addRealRepositoryFiles(realRepository, buildTag, files);
         return realRepository;
-    }
-
-    protected FilePath replaceFiles(FilePath dir, String... newPaths) throws IOException, InterruptedException {
-        List<FilePath> paths = dir.list();
-        for (FilePath path : paths) {
-            if (path.isDirectory())
-                path.deleteRecursive();
-            else
-                path.delete();
-        }
-
-        for(String fileName : newPaths) {
-            dir.child(fileName).write(fileName, "UTF-8");
-        }
-
-        return dir;
     }
 
     protected RepoInfoProvider createInfoProvider() throws IOException, InterruptedException {

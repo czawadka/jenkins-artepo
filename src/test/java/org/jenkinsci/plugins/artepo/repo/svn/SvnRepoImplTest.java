@@ -86,8 +86,9 @@ public class SvnRepoImplTest extends AbstractRepoImplTest {
     protected List<String> listRealRepository(Object realRepository, String buildTag) throws IOException, InterruptedException {
         try {
             SVNURL url = (SVNURL)realRepository;
-            SVNRevision revision = new SvnRepoImpl(createInfoProvider(),
-                    url.toString(), null, null).findRevisionFromBuildTag(buildTag);
+            SVNRevision revision = buildTag != null
+                    ? new SvnRepoImpl(createInfoProvider(), url.toString(), null, null).findRevisionFromBuildTag(buildTag)
+                    : SVNRevision.HEAD;
             return svnHelper.list(url, revision, true);
         } catch (SVNException e) {
             throw new RuntimeException(e);
@@ -105,4 +106,17 @@ public class SvnRepoImplTest extends AbstractRepoImplTest {
         String log = getLog();
         assertThat(log, RegularExpressionMatcher.matchesPattern("(?m)^update_add a.txt$"));
     }
+
+    @Test
+    public void svnLogHandleEndingWithSlash() throws IOException, InterruptedException, SVNException {
+        // prepare repo
+        Object realRepository = createRealRepositoryWithFiles("101", "a.txt");
+
+        AbstractRepoImpl impl = createRepoImpl(realRepository.toString()+"/");
+        impl.prepareSource(null);
+
+        String log = getLog();
+        assertThat(log, RegularExpressionMatcher.matchesPattern("(?m)^update_add a.txt$"));
+    }
+
 }

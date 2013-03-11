@@ -17,6 +17,7 @@ import org.tmatesoft.svn.core.wc.SVNRevision;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class SvnRepoImpl extends AbstractRepoImpl {
     String url;
@@ -34,15 +35,18 @@ public class SvnRepoImpl extends AbstractRepoImpl {
         this.svnHelper = createSvnHelper();
     }
 
+    Pattern endsWithSlash = Pattern.compile("/+$");
+    Pattern startsWithSlash = Pattern.compile("^/+");
+
     SvnHelper createSvnHelper() {
         SvnHelper svnHelper = new SvnHelper();
         svnHelper.setAuthentication(user, password);
-        final int urlBaseLength = url==null ? 0 : url.length();
+        final int urlBaseLength = url==null ? 0 : endsWithSlash.matcher(url).replaceAll("").length();
         svnHelper.setEventHandler(new ISVNEventHandler() {
             public void handleEvent(SVNEvent event, double progress) throws SVNException {
                 String path = event.getURL()!=null ? event.getURL().toString().substring(urlBaseLength) : null;
-                if (path!=null && path.startsWith("/"))
-                    path = path.substring(1);
+                if (path!=null)
+                    path = startsWithSlash.matcher(path).replaceAll("");
                 infoProvider.getLogger().println(event.getAction() + " " + (path!=null ? path : ""));
             }
 
@@ -102,17 +106,17 @@ public class SvnRepoImpl extends AbstractRepoImpl {
         }
     }
 
-    FilePath getWCPath() {
+    FilePath getWCPath() throws IOException, InterruptedException {
         String nameFromUrl = url.replaceAll("[^0-9a-zA-Z]+", "_");
         return infoProvider.getTempPath().child(nameFromUrl);
     }
 
-    public void copyFrom(FilePath source, List<CopyPattern> patterns, String buildTag)
+    public void copyFrom(FilePath source, CopyPattern pattern, String buildTag)
             throws InterruptedException, IOException {
         try {
 
             FilePath wcPath = checkout(null);
-            ArtepoUtil.sync(wcPath, source, patterns);
+            ArtepoUtil.sync(wcPath, source, pattern);
             commit(wcPath, buildTag);
 
         } catch (SVNException e) {

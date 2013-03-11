@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 public class SvnHelper {
@@ -29,7 +30,7 @@ public class SvnHelper {
     }
 
     public void deleteMissingAddUnversioned(File wcPath) throws SVNException {
-        MissingUnversionedStatusHandler missingUnversionedHandler = new MissingUnversionedStatusHandler();
+        MissingUnversionedStatusHandler missingUnversionedHandler = new MissingUnversionedStatusHandler(wcPath);
         SVNStatusClient statusClient = clientManager.getStatusClient();
         statusClient.doStatus(wcPath, SVNRevision.HEAD, SVNDepth.INFINITY,
                 false, false, false, false, missingUnversionedHandler, null);
@@ -149,16 +150,18 @@ public class SvnHelper {
     }
 
     private static class MissingUnversionedStatusHandler implements ISVNStatusHandler {
+        private File wcRoot;
         private Collection<File> missingFiles;
         private Collection<File> unversionedFiles;
 
-        public MissingUnversionedStatusHandler(Collection<File> missingFiles, Collection<File> unversionedFiles) {
+        public MissingUnversionedStatusHandler(File wcRoot, Collection<File> missingFiles, Collection<File> unversionedFiles) {
+            this.wcRoot = wcRoot;
             this.missingFiles = missingFiles;
             this.unversionedFiles = unversionedFiles;
         }
 
-        public MissingUnversionedStatusHandler() {
-            this(new ArrayList<File>(), new ArrayList<File>());
+        public MissingUnversionedStatusHandler(File wcRoot) {
+            this(wcRoot, new HashSet<File>(), new HashSet<File>());
         }
 
         public Collection<File> getMissingFiles() {
@@ -172,11 +175,24 @@ public class SvnHelper {
         public void handleStatus(SVNStatus status) throws SVNException {
             SVNStatusType contentStatus = status.getContentsStatus();
             File file = status.getFile();
-            if (contentStatus==SVNStatusType.STATUS_MISSING || !file.exists())
+            if (contentStatus==SVNStatusType.STATUS_MISSING || !file.exists()) {
                 missingFiles.add(file);
+                addMissingParents(file);
+            }
             else if (contentStatus==SVNStatusType.STATUS_UNVERSIONED
                     || contentStatus==SVNStatusType.STATUS_NONE)
                 unversionedFiles.add(file);
+        }
+
+        private void addMissingParents(File file) {
+            File parent = file.getParentFile();
+            while(!missingFiles.contains(parent) && isBelowWcRoot(parent) && !parent.exists()) {
+                missingFiles.add(parent);
+                parent = parent.getParentFile();
+            }
+        }
+        private boolean isBelowWcRoot(File f) {
+            return wcRoot.getAbsolutePath().length()<f.getAbsolutePath().length();
         }
     }
 

@@ -5,7 +5,9 @@ import hudson.model.Descriptor;
 import hudson.model.Hudson;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public class CopyPattern implements Describable<CopyPattern> {
+import java.io.Serializable;
+
+public class CopyPattern implements Describable<CopyPattern>, Serializable {
     private String subFolder;
     private String includes;
     private String excludes;

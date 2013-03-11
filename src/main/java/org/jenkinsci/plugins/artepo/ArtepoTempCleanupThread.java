@@ -65,7 +65,7 @@ public class ArtepoTempCleanupThread extends AsyncPeriodicWork {
         listener.getLogger().println("Scanning "+node.getNodeName());
         try {
             for (AbstractProject project : projects) {
-                FilePath projectTempPath = ArtepoCopy.getTempPath(project, node);
+                FilePath projectTempPath = ArtepoCopy.getNodeTempPath(node, project.getRootProject().getName());
                 if (shouldDeleteDir(projectTempPath))
                     delete(projectTempPath);
             }
