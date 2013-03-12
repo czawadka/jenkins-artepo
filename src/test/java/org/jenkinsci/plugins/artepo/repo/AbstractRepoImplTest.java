@@ -11,8 +11,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -26,22 +24,22 @@ abstract public class AbstractRepoImplTest {
     @Test
     public void prepareSourcesCopiesFiles() throws IOException, InterruptedException, SVNException {
         // prepare repo
-        Object realRepository = createRealRepositoryWithFiles("13", "a.txt");
+        Object realRepository = createRealRepositoryWithFiles(13, "a.txt");
 
         AbstractRepoImpl impl = createRepoImpl(realRepository);
-        FilePath sourcePath = impl.prepareSource("13");
+        FilePath sourcePath = impl.prepareSource(13);
 
         List<String> sourcePaths = listSource(sourcePath);
         assertThat(sourcePaths, containsInAnyOrder("a.txt"));
     }
 
-    @Test(expected = BuildTagNotFoundException.class)
-    public void prepareSourcesThrowsBuildTagNotFoundException() throws IOException, InterruptedException, SVNException {
+    @Test(expected = BuildNotFoundException.class)
+    public void prepareSourcesThrowsBuildNotFoundException() throws IOException, InterruptedException, SVNException {
         // prepare repo
         Object realRepository = createRealRepository();
 
         AbstractRepoImpl impl = createRepoImpl(realRepository);
-        impl.prepareSource("nonexisting");
+        impl.prepareSource(Integer.MIN_VALUE);
     }
 
     @Test
@@ -51,9 +49,9 @@ abstract public class AbstractRepoImplTest {
         util.replaceFiles(source, "a.txt", "b.txt");
 
         AbstractRepoImpl impl = createRepoImpl(realRepository);
-        impl.copyFrom(source, null, "13");
+        impl.copyFrom(source, null, 13);
 
-        List<String> repositoryPaths = listRealRepository(realRepository, "13");
+        List<String> repositoryPaths = listRealRepository(realRepository, 13);
         assertThat(repositoryPaths, containsInAnyOrder("a.txt", "b.txt"));
     }
 
@@ -64,11 +62,11 @@ abstract public class AbstractRepoImplTest {
         AbstractRepoImpl impl = createRepoImpl(realRepository);
 
         util.replaceFiles(source, "a.txt", "b.txt");
-        impl.copyFrom(source, null, "13");
+        impl.copyFrom(source, null, 13);
         util.replaceFiles(source, "c.txt");
-        impl.copyFrom(source, null, "14");
+        impl.copyFrom(source, null, 14);
 
-        List<String> repositoryPaths = listRealRepository(realRepository, "14");
+        List<String> repositoryPaths = listRealRepository(realRepository, 14);
         assertThat(repositoryPaths, containsInAnyOrder("c.txt"));
     }
 
@@ -79,13 +77,13 @@ abstract public class AbstractRepoImplTest {
         FilePath source = util.createTempSubDir(null);
         AbstractRepoImpl impl = createRepoImpl(realRepository);
         util.replaceFiles(source, "build.xml", "dist/a.txt", "dist/b.txt");
-        impl.copyFrom(source, null, "13");
+        impl.copyFrom(source, null, 13);
 
         CopyPattern distCopyPattern = new CopyPattern("dist/", null, null);
         AbstractRepoImpl impl2 = createRepoImpl(realRepository);
-        impl2.copyFrom(source, distCopyPattern, "14");
+        impl2.copyFrom(source, distCopyPattern, 14);
 
-        List<String> repositoryPaths = listRealRepository(realRepository, "14");
+        List<String> repositoryPaths = listRealRepository(realRepository, 14);
         assertThat(repositoryPaths, containsInAnyOrder("a.txt", "b.txt"));
     }
 
@@ -96,9 +94,9 @@ abstract public class AbstractRepoImplTest {
         util.replaceFiles(source, "a.txt", "b.txt");
 
         AbstractRepoImpl impl = createRepoImpl(realRepository);
-        impl.copyFrom(source, null, "13");
+        impl.copyFrom(source, null, 13);
 
-        List<String> repositoryPaths = listRealRepository(realRepository, "13");
+        List<String> repositoryPaths = listRealRepository(realRepository, 13);
         assertThat(repositoryPaths, containsInAnyOrder("a.txt", "b.txt"));
     }
 
@@ -111,18 +109,18 @@ abstract public class AbstractRepoImplTest {
         return util.listDirPaths(source);
     }
 
-    abstract protected List<String> listRealRepository(Object realRepository, String buildTag)
+    abstract protected List<String> listRealRepository(Object realRepository, int buildNumber)
             throws IOException, InterruptedException;
 
     protected abstract Object createRealRepository() throws IOException, InterruptedException;
     protected abstract Object prepareNonExistingRealRepository() throws IOException, InterruptedException;
-    protected abstract void addRealRepositoryFiles(Object realRepository, String buildTag, String...files)
+    protected abstract void addRealRepositoryFiles(Object realRepository, int buildNumber, String...files)
             throws IOException, InterruptedException;
     protected abstract AbstractRepoImpl createRepoImpl(Object realRepository) throws IOException, InterruptedException;
 
-    protected Object createRealRepositoryWithFiles(String buildTag, String...files) throws IOException, InterruptedException {
+    protected Object createRealRepositoryWithFiles(int buildNumber, String...files) throws IOException, InterruptedException {
         Object realRepository = createRealRepository();
-        addRealRepositoryFiles(realRepository, buildTag, files);
+        addRealRepositoryFiles(realRepository, buildNumber, files);
         return realRepository;
     }
 

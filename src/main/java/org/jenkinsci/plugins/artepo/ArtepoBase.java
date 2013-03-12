@@ -73,17 +73,8 @@ public class ArtepoBase extends Notifier {
         return getSourceRepoStrategy().getSourceRepo(this, build, launcher, listener);
     }
 
-    protected String getResolvedBuildTag(AbstractBuild<?, ?> build, TaskListener listener) throws IOException, InterruptedException {
-        EnvVars env = build.getEnvironment(listener);
-        String buildTag = null;
-        if (buildTag!=null && buildTag.trim().length()>0) {
-            buildTag = env.expand(buildTag.trim());
-        } else {
-            buildTag = env.get(ArtepoUtil.PROMOTED_NUMBER);
-            if (buildTag==null || buildTag.trim().length()==0) {
-                buildTag = String.valueOf(build.getNumber());
-            }
-        }
+    protected int getResolvedBuildNumber(AbstractBuild<?, ?> build, TaskListener listener) throws IOException, InterruptedException {
+        int buildTag = build.getRootBuild().getNumber();
         return buildTag;
     }
 
@@ -132,20 +123,21 @@ public class ArtepoBase extends Notifier {
         Repo sourceRepo;
         CopyPattern copyPattern;
         RepoInfoProvider infoProvider;
-        String buildTag;
+        int buildNumber;
 
-        public CopyCallable(Repo destinationRepo, Repo sourceRepo, CopyPattern copyPattern, RepoInfoProvider infoProvider, String buildTag) {
+        public CopyCallable(Repo destinationRepo, Repo sourceRepo, CopyPattern copyPattern,
+                            RepoInfoProvider infoProvider, int buildNumber) {
             this.destinationRepo = destinationRepo;
             this.sourceRepo = sourceRepo;
             this.copyPattern = copyPattern;
             this.infoProvider = infoProvider;
-            this.buildTag = buildTag;
+            this.buildNumber = buildNumber;
         }
 
         public Object call() throws IOException {
             try {
-                FilePath sourcePath = sourceRepo.prepareSource(infoProvider, buildTag);
-                destinationRepo.copyFrom(infoProvider, sourcePath, copyPattern, buildTag);
+                FilePath sourcePath = sourceRepo.prepareSource(infoProvider, buildNumber);
+                destinationRepo.copyFrom(infoProvider, sourcePath, copyPattern, buildNumber);
                 return null;
             } catch (InterruptedException e) {
                 throw new IOException2(e);
@@ -163,10 +155,10 @@ public class ArtepoBase extends Notifier {
                 build.getWorkspace(),
                 listener.getLogger()
             );
-        String buildTag = getResolvedBuildTag(build, listener);
+        int buildNumber = getResolvedBuildNumber(build, listener);
 
         Callable<Object, IOException> callable = new CopyCallable(
-                destinationRepo, sourceRepo, copyPattern, infoProvider, buildTag
+                destinationRepo, sourceRepo, copyPattern, infoProvider, buildNumber
             );
         Node node = build.getBuiltOn();
         node.getChannel().call(callable);

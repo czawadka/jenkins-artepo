@@ -17,14 +17,14 @@ abstract public class AbstractRepo implements Describable<AbstractRepo>, Repo {
 
     abstract protected AbstractRepoImpl createImpl(RepoInfoProvider infoProvider);
 
-    public FilePath prepareSource(RepoInfoProvider infoProvider, String buildTag) throws InterruptedException, IOException {
+    public FilePath prepareSource(RepoInfoProvider infoProvider, int buildNumber) throws InterruptedException, IOException {
         AbstractRepoImpl impl = createImpl(infoProvider);
-        return impl.prepareSource(buildTag);
+        return impl.prepareSource(buildNumber);
     }
 
-    public void copyFrom(RepoInfoProvider infoProvider, FilePath sourcePath, CopyPattern pattern, String buildTag) throws InterruptedException, IOException {
+    public void copyFrom(RepoInfoProvider infoProvider, FilePath sourcePath, CopyPattern pattern, int buildNumber) throws InterruptedException, IOException {
         AbstractRepoImpl impl = createImpl(infoProvider);
-        impl.copyFrom(sourcePath, pattern, buildTag);
+        impl.copyFrom(sourcePath, pattern, buildNumber);
     }
 
     public RepoDescriptor getDescriptor() {

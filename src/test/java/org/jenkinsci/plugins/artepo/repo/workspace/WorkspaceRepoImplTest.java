@@ -18,7 +18,7 @@ public class WorkspaceRepoImplTest extends AbstractRepoImplTest {
     @Test
     @Ignore
     @Override
-    public void prepareSourcesThrowsBuildTagNotFoundException() throws IOException, InterruptedException, SVNException {
+    public void prepareSourcesThrowsBuildNotFoundException() throws IOException, InterruptedException, SVNException {
         // intentionally ignore, workspace repo doesn't implement tagging functionality
     }
 
@@ -28,13 +28,13 @@ public class WorkspaceRepoImplTest extends AbstractRepoImplTest {
         Object realRepository = createRealRepository();
 
         AbstractRepoImpl impl = createRepoImpl(realRepository);
-        FilePath source = impl.prepareSource("nonexisting");
+        FilePath source = impl.prepareSource(Integer.MIN_VALUE);
 
         assertEquals(realRepository, source);
     }
 
     @Override
-    protected List<String> listRealRepository(Object realRepository, String buildTag) throws IOException, InterruptedException {
+    protected List<String> listRealRepository(Object realRepository, int buildNumber) throws IOException, InterruptedException {
         FilePath workspaceDir = (FilePath)realRepository;
         return util.listDirPaths(workspaceDir);
     }
@@ -52,7 +52,7 @@ public class WorkspaceRepoImplTest extends AbstractRepoImplTest {
     }
 
     @Override
-    protected void addRealRepositoryFiles(Object realRepository, String buildTag, String... files)
+    protected void addRealRepositoryFiles(Object realRepository, int buildNumber, String... files)
             throws IOException, InterruptedException {
 
         if (files!=null && files.length>0) {

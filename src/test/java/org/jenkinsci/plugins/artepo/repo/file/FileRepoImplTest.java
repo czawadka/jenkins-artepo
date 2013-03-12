@@ -11,9 +11,9 @@ import java.util.List;
 public class FileRepoImplTest extends AbstractRepoImplTest {
 
     @Override
-    protected List<String> listRealRepository(Object realRepository, String buildTag) throws IOException, InterruptedException {
+    protected List<String> listRealRepository(Object realRepository, int buildNumber) throws IOException, InterruptedException {
         FilePath repoDir = (FilePath)realRepository;
-        FilePath buildDir = repoDir.child(buildTag);
+        FilePath buildDir = repoDir.child(String.valueOf(buildNumber));
         return util.listDirPaths(buildDir);
     }
 
@@ -30,12 +30,12 @@ public class FileRepoImplTest extends AbstractRepoImplTest {
     }
 
     @Override
-    protected void addRealRepositoryFiles(Object realRepository, String buildTag, String... files)
+    protected void addRealRepositoryFiles(Object realRepository, int buildNumber, String... files)
             throws IOException, InterruptedException {
 
         if (files!=null && files.length>0) {
             FilePath wcPath = (FilePath)realRepository;
-            wcPath = wcPath.child(buildTag);
+            wcPath = wcPath.child(String.valueOf(buildNumber));
 
             for (String file : files) {
                 FilePath filePath = wcPath.child(file);

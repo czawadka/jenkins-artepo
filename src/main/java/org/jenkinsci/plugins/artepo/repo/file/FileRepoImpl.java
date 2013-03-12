@@ -1,15 +1,13 @@
 package org.jenkinsci.plugins.artepo.repo.file;
 
 import hudson.FilePath;
-import org.jenkinsci.plugins.artepo.ArtepoUtil;
 import org.jenkinsci.plugins.artepo.CopyPattern;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
-import org.jenkinsci.plugins.artepo.repo.BuildTagNotFoundException;
+import org.jenkinsci.plugins.artepo.repo.BuildNotFoundException;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 public class FileRepoImpl extends AbstractRepoImpl {
     String path;
@@ -19,17 +17,17 @@ public class FileRepoImpl extends AbstractRepoImpl {
         this.path = path;
     }
 
-    public FilePath prepareSource(String buildTag) throws InterruptedException, IOException {
+    public FilePath prepareSource(int buildNumber) throws InterruptedException, IOException {
         FilePath buildPath = new FilePath(new File(path));
-        buildPath = buildPath.child(buildTag);
+        buildPath = buildPath.child(String.valueOf(buildNumber));
         if (!buildPath.exists())
-            throw new BuildTagNotFoundException(buildTag, path);
+            throw new BuildNotFoundException(buildNumber, path);
         return buildPath;
     }
 
-    public void copyFrom(FilePath sourcePath, CopyPattern pattern, String buildTag)
+    public void copyFrom(FilePath sourcePath, CopyPattern pattern, int buildNumber)
             throws InterruptedException, IOException {
-        FilePath destinationPath = new FilePath(new File(path)).child(buildTag);
+        FilePath destinationPath = new FilePath(new File(path)).child(String.valueOf(buildNumber));
         destinationPath.mkdirs();
 
         sync(destinationPath, sourcePath, pattern);
