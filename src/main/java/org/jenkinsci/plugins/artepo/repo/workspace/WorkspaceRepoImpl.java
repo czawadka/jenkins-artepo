@@ -18,11 +18,11 @@ public class WorkspaceRepoImpl extends AbstractRepoImpl {
         this.workspacePath = workspacePath;
     }
 
-    public FilePath prepareSource(String buildTag) throws InterruptedException, IOException {
+    public FilePath prepareSource(int buildNumber) throws InterruptedException, IOException {
         return getWorkspaceFilePath();
     }
 
-    public void copyFrom(FilePath sourcePath, CopyPattern pattern, String buildTag)
+    public void copyFrom(FilePath sourcePath, CopyPattern pattern, int buildNumber)
             throws InterruptedException, IOException {
         FilePath destinationPath = getWorkspaceFilePath();
 

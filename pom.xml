@@ -11,7 +11,7 @@
 
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>artepo</artifactId>
-    <version>1.2.4</version>
+    <version>1.2.5</version>
     <packaging>hpi</packaging>
     <name>Artepo plugin</name>
 

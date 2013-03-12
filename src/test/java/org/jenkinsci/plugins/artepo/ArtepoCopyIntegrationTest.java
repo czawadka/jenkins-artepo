@@ -1,7 +1,9 @@
 package org.jenkinsci.plugins.artepo;
 
+import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
+import org.jenkinsci.plugins.artepo.repo.file.FileRepoImpl;
 
 import java.util.List;
 
@@ -25,7 +27,7 @@ public class ArtepoCopyIntegrationTest extends IntegrationTestBase {
         FreeStyleBuild build = build(project);
 
         // verify copied paths after build
-        List<String> paths = util.listDirPaths(mainArtepo.repoPath.child(String.valueOf(build.getNumber())));
+        List<String> paths = util.listDirPaths(getBuildPath(mainArtepo.repoPath, build.getNumber()));
         assertThat(paths, containsInAnyOrder("a.txt", "b.txt"));
     }
 
@@ -39,7 +41,24 @@ public class ArtepoCopyIntegrationTest extends IntegrationTestBase {
         promote(build, fooPromotion.promotion.getName());
 
         // verify copied paths after build
-        List<String> paths = util.listDirPaths(fooPromotion.repoPath.child(String.valueOf(build.getNumber())));
+        List<String> paths = util.listDirPaths(getBuildPath(fooPromotion.repoPath, build.getNumber()));
         assertThat(paths, containsInAnyOrder("a.txt", "b.txt"));
     }
+
+    public void testCopyGeneratesLogs() throws Exception {
+        FreeStyleProject project = createProjectWithBuilder("a.txt", "b.txt");
+        CreatedArtepo mainArtepo = createMainArtepo(project);
+
+        // run & automatically self promote build
+        FreeStyleBuild build = build(project);
+
+        // verify copied paths after build
+        String log = build.getLog();
+        assertThat(log, RegularExpressionMatcher.matchesPattern("(?mi)^Sync .* to .* using pattern .*$"));
+    }
+
+    protected FilePath getBuildPath(FilePath repoPath, int buildNumber) {
+        return repoPath.child(FileRepoImpl.formatBuildNumber(buildNumber));
+    }
+
 }
