@@ -4,9 +4,14 @@ import hudson.FilePath;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImplTest;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
+
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 public class FileRepoImplTest extends AbstractRepoImplTest {
 
@@ -50,5 +55,29 @@ public class FileRepoImplTest extends AbstractRepoImplTest {
         String path = realRepository.toString();
         RepoInfoProvider infoProvider = createInfoProvider();
         return new FileRepoImpl(infoProvider, path);
+    }
+
+    @Test
+    public void testFormatBuildSubfolderWith5Digits() throws IOException, InterruptedException {
+        FilePath src = util.createTempSubDir("src");
+        util.replaceFiles(src, "a.txt");
+        Object realRepository = createRealRepository();
+        AbstractRepoImpl impl = createRepoImpl(realRepository);
+        impl.copyFrom(src, null, 13);
+
+        FilePath sourcePath = impl.prepareSource(13);
+
+        assertEquals("00013", sourcePath.getName());
+    }
+
+    @Test
+    public void testSupportsNon5DigitBuildSubfolder() throws IOException, InterruptedException {
+        FilePath repoPath = util.createTempSubDir("repo");
+        repoPath.child("13").mkdirs();
+        FileRepoImpl fileRepo = new FileRepoImpl(createInfoProvider(repoPath), repoPath.getRemote());
+
+        FilePath src = fileRepo.prepareSource(13);
+
+        assertEquals("13", src.getName());
     }
 }

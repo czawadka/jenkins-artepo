@@ -18,16 +18,35 @@ public class FileRepoImpl extends AbstractRepoImpl {
     }
 
     public FilePath prepareSource(int buildNumber) throws InterruptedException, IOException {
-        FilePath buildPath = new FilePath(new File(path));
-        buildPath = buildPath.child(String.valueOf(buildNumber));
-        if (!buildPath.exists())
+        FilePath repoPath = new FilePath(new File(path));
+        FilePath buildPath = findBuildPath(repoPath, buildNumber);
+        if (buildPath==null)
             throw new BuildNotFoundException(buildNumber, path);
         return buildPath;
     }
 
+    protected FilePath findBuildPath(FilePath repoPath, int buildNumber) throws IOException, InterruptedException {
+        FilePath buildPath;
+        String formattedBuildNumber = formatBuildNumber(buildNumber);
+        buildPath = repoPath.child(formattedBuildNumber);
+        if (!buildPath.exists()) {
+            buildPath = repoPath.child(String.valueOf(buildNumber));
+            if (!buildPath.exists()) {
+                buildPath = null;
+            }
+        }
+        return buildPath;
+    }
+
+    protected String formatBuildNumber(int buildNumber) {
+        return String.format("%05d", buildNumber);
+    }
+
     public void copyFrom(FilePath sourcePath, CopyPattern pattern, int buildNumber)
             throws InterruptedException, IOException {
-        FilePath destinationPath = new FilePath(new File(path)).child(String.valueOf(buildNumber));
+
+        String formattedBuildNumber = formatBuildNumber(buildNumber);
+        FilePath destinationPath = new FilePath(new File(path)).child(formattedBuildNumber);
         destinationPath.mkdirs();
 
         sync(destinationPath, sourcePath, pattern);
