@@ -38,7 +38,7 @@ public class FileRepoImpl extends AbstractRepoImpl {
         return buildPath;
     }
 
-    protected String formatBuildNumber(int buildNumber) {
+    static public String formatBuildNumber(int buildNumber) {
         return String.format("%05d", buildNumber);
     }
 

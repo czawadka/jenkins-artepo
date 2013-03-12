@@ -18,7 +18,7 @@ public class FileRepoImplTest extends AbstractRepoImplTest {
     @Override
     protected List<String> listRealRepository(Object realRepository, int buildNumber) throws IOException, InterruptedException {
         FilePath repoDir = (FilePath)realRepository;
-        FilePath buildDir = repoDir.child(String.valueOf(buildNumber));
+        FilePath buildDir = repoDir.child(FileRepoImpl.formatBuildNumber(buildNumber));
         return util.listDirPaths(buildDir);
     }
 
