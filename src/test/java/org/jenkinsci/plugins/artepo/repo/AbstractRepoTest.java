@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 abstract public class AbstractRepoTest {
@@ -27,10 +26,10 @@ abstract public class AbstractRepoTest {
     public void testCalledImplPrepareSource() throws Exception {
         createRepoMock();
 
-        String buildTag = "some build tag";
-        repo.prepareSource(null, buildTag);
+        int buildNumber = 113;
+        repo.prepareSource(null, buildNumber);
 
-        verify(implMock, times(1)).prepareSource(buildTag);
+        verify(implMock, times(1)).prepareSource(buildNumber);
     }
 
     @Test
@@ -38,10 +37,10 @@ abstract public class AbstractRepoTest {
         createRepoMock();
 
         FilePath source = new FilePath(new File("."));
-        String buildTag = "some build tag";
-        repo.copyFrom(null, source, null, buildTag);
+        int buildNumber = 113;
+        repo.copyFrom(null, source, null, buildNumber);
 
-        verify(implMock, times(1)).copyFrom(source, null, buildTag);
+        verify(implMock, times(1)).copyFrom(source, null, buildNumber);
     }
 
     protected void createImplMock() throws IOException, InterruptedException {
@@ -53,11 +52,11 @@ abstract public class AbstractRepoTest {
         repo = mock(repoClass);
         when(repo.createImpl(any(RepoInfoProvider.class)))
                 .thenReturn(implMock);
-        when(repo.prepareSource(any(RepoInfoProvider.class), anyString()))
+        when(repo.prepareSource(any(RepoInfoProvider.class), anyInt()))
                 .thenAnswer(Answers.CALLS_REAL_METHODS.get());
         doAnswer(Answers.CALLS_REAL_METHODS.get())
                 .when(repo)
-                    .copyFrom(any(RepoInfoProvider.class), any(FilePath.class), any(CopyPattern.class), anyString());
+                    .copyFrom(any(RepoInfoProvider.class), any(FilePath.class), any(CopyPattern.class), anyInt());
     }
 
     protected RepoInfoProvider createRepoInfoProvider() {

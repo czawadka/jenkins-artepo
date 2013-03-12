@@ -1,15 +1,13 @@
 package org.jenkinsci.plugins.artepo.repo.file;
 
 import hudson.FilePath;
-import org.jenkinsci.plugins.artepo.ArtepoUtil;
 import org.jenkinsci.plugins.artepo.CopyPattern;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
-import org.jenkinsci.plugins.artepo.repo.BuildTagNotFoundException;
+import org.jenkinsci.plugins.artepo.repo.BuildNotFoundException;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 public class FileRepoImpl extends AbstractRepoImpl {
     String path;
@@ -19,17 +17,36 @@ public class FileRepoImpl extends AbstractRepoImpl {
         this.path = path;
     }
 
-    public FilePath prepareSource(String buildTag) throws InterruptedException, IOException {
-        FilePath buildPath = new FilePath(new File(path));
-        buildPath = buildPath.child(buildTag);
-        if (!buildPath.exists())
-            throw new BuildTagNotFoundException(buildTag, path);
+    public FilePath prepareSource(int buildNumber) throws InterruptedException, IOException {
+        FilePath repoPath = new FilePath(new File(path));
+        FilePath buildPath = findBuildPath(repoPath, buildNumber);
+        if (buildPath==null)
+            throw new BuildNotFoundException(buildNumber, path);
         return buildPath;
     }
 
-    public void copyFrom(FilePath sourcePath, CopyPattern pattern, String buildTag)
+    protected FilePath findBuildPath(FilePath repoPath, int buildNumber) throws IOException, InterruptedException {
+        FilePath buildPath;
+        String formattedBuildNumber = formatBuildNumber(buildNumber);
+        buildPath = repoPath.child(formattedBuildNumber);
+        if (!buildPath.exists()) {
+            buildPath = repoPath.child(String.valueOf(buildNumber));
+            if (!buildPath.exists()) {
+                buildPath = null;
+            }
+        }
+        return buildPath;
+    }
+
+    protected String formatBuildNumber(int buildNumber) {
+        return String.format("%05d", buildNumber);
+    }
+
+    public void copyFrom(FilePath sourcePath, CopyPattern pattern, int buildNumber)
             throws InterruptedException, IOException {
-        FilePath destinationPath = new FilePath(new File(path)).child(buildTag);
+
+        String formattedBuildNumber = formatBuildNumber(buildNumber);
+        FilePath destinationPath = new FilePath(new File(path)).child(formattedBuildNumber);
         destinationPath.mkdirs();
 
         sync(destinationPath, sourcePath, pattern);

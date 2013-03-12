@@ -4,7 +4,7 @@ import hudson.FilePath;
 import org.jenkinsci.plugins.artepo.ArtepoUtil;
 import org.jenkinsci.plugins.artepo.CopyPattern;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
-import org.jenkinsci.plugins.artepo.repo.BuildTagNotFoundException;
+import org.jenkinsci.plugins.artepo.repo.BuildNotFoundException;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 import org.tmatesoft.svn.core.SVNCancelException;
 import org.tmatesoft.svn.core.SVNException;
@@ -58,15 +58,15 @@ public class SvnRepoImpl extends AbstractRepoImpl {
         return svnHelper;
     }
 
-    public FilePath prepareSource(String buildTag) throws InterruptedException, IOException {
+    public FilePath prepareSource(int buildNumber) throws InterruptedException, IOException {
         try {
-            return checkout(buildTag);
+            return checkout(buildNumber);
         } catch (SVNException e) {
             throw new RuntimeException(e);
         }
     }
 
-    FilePath checkout(String buildTag)
+    FilePath checkout(Integer buildNumber)
             throws SVNException, IOException, InterruptedException {
 
         infoProvider.getLogger().println("Checkout from "+url);
@@ -75,18 +75,18 @@ public class SvnRepoImpl extends AbstractRepoImpl {
         createRepositoryFolderIfNotExists(svnUrl);
 
         FilePath wcPath = getWCPath();
-        SVNRevision revision = buildTag==null ? SVNRevision.HEAD : findRevisionFromBuildTag(buildTag);
+        SVNRevision revision = buildNumber==null ? SVNRevision.HEAD : findRevisionFromBuildTag(buildNumber);
         svnHelper.checkout(ArtepoUtil.toFile(wcPath), svnUrl, revision);
 
         return wcPath;
     }
 
-    SVNRevision findRevisionFromBuildTag(String buildTag) throws SVNException {
+    SVNRevision findRevisionFromBuildTag(int buildNumber) throws SVNException {
         SVNRevision currentRevision = SVNRevision.HEAD;
         SVNURL svnUrl = SVNURL.parseURIEncoded(this.url);
         int limit = 20;
 
-        String pattern = prepareCommitMessage(buildTag);
+        String pattern = prepareCommitMessage(buildNumber);
 
         do {
             List<SVNLogEntry> logEntries = svnHelper.log(svnUrl, currentRevision, limit);
@@ -98,7 +98,7 @@ public class SvnRepoImpl extends AbstractRepoImpl {
             }
         } while(currentRevision.getNumber()>0);
 
-        throw new BuildTagNotFoundException(buildTag, this.url);
+        throw new BuildNotFoundException(buildNumber, this.url);
     }
 
     void createRepositoryFolderIfNotExists(SVNURL svnUrl) throws SVNException {
@@ -113,30 +113,30 @@ public class SvnRepoImpl extends AbstractRepoImpl {
         return infoProvider.getTempPath().child(nameFromUrl);
     }
 
-    public void copyFrom(FilePath source, CopyPattern pattern, String buildTag)
+    public void copyFrom(FilePath source, CopyPattern pattern, int buildNumber)
             throws InterruptedException, IOException {
         try {
 
             FilePath wcPath = checkout(null);
             sync(wcPath, source, pattern);
-            commit(wcPath, buildTag);
+            commit(wcPath, buildNumber);
 
         } catch (SVNException e) {
             throw new RuntimeException(e);
         }
     }
 
-    void commit(FilePath wcPath, String buildTag) throws SVNException, IOException, InterruptedException {
+    void commit(FilePath wcPath, int buildNumber) throws SVNException, IOException, InterruptedException {
         infoProvider.getLogger().println("Commit to "+url);
 
         svnHelper.deleteMissingAddUnversioned(ArtepoUtil.toFile(wcPath));
 
-        String commitMessage = prepareCommitMessage(buildTag);
+        String commitMessage = prepareCommitMessage(buildNumber);
         svnHelper.commit(ArtepoUtil.toFile(wcPath), commitMessage);
     }
 
-    String prepareCommitMessage(String buildTag) {
-        return "buildnumber: "+buildTag;
+    String prepareCommitMessage(int buildNumber) {
+        return "buildnumber: "+buildNumber;
     }
 
     public String getUrl() {

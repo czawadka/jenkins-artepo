@@ -47,7 +47,7 @@ public class SvnRepoImplTest extends AbstractRepoImplTest {
     }
 
     @Override
-    protected void addRealRepositoryFiles(Object realRepository, String buildTag, String... files)
+    protected void addRealRepositoryFiles(Object realRepository, int buildNumber, String... files)
             throws IOException, InterruptedException {
         try {
             SVNURL url = (SVNURL)realRepository;
@@ -63,7 +63,7 @@ public class SvnRepoImplTest extends AbstractRepoImplTest {
 
                 svnHelper.deleteMissingAddUnversioned(toFile(wcPath));
 
-                String commitMessage = prepareCommitMessage(buildTag);
+                String commitMessage = prepareCommitMessage(buildNumber);
                 svnHelper.commit(toFile(wcPath), commitMessage);
             }
         } catch (SVNException e) {
@@ -78,17 +78,15 @@ public class SvnRepoImplTest extends AbstractRepoImplTest {
         return new SvnRepoImpl(infoProvider, svnUrl, null, null);
     }
 
-    String prepareCommitMessage(String buildTag) {
-        return new SvnRepoImpl(null, null, null, null).prepareCommitMessage(buildTag);
+    String prepareCommitMessage(int buildNumber) {
+        return new SvnRepoImpl(null, null, null, null).prepareCommitMessage(buildNumber);
     }
 
     @Override
-    protected List<String> listRealRepository(Object realRepository, String buildTag) throws IOException, InterruptedException {
+    protected List<String> listRealRepository(Object realRepository, int buildNumber) throws IOException, InterruptedException {
         try {
             SVNURL url = (SVNURL)realRepository;
-            SVNRevision revision = buildTag != null
-                    ? new SvnRepoImpl(createInfoProvider(), url.toString(), null, null).findRevisionFromBuildTag(buildTag)
-                    : SVNRevision.HEAD;
+            SVNRevision revision = new SvnRepoImpl(createInfoProvider(), url.toString(), null, null).findRevisionFromBuildTag(buildNumber);
             return svnHelper.list(url, revision, true);
         } catch (SVNException e) {
             throw new RuntimeException(e);
@@ -98,10 +96,10 @@ public class SvnRepoImplTest extends AbstractRepoImplTest {
     @Test
     public void svnLogContainsShortPath() throws IOException, InterruptedException, SVNException {
         // prepare repo
-        Object realRepository = createRealRepositoryWithFiles("101", "a.txt");
+        Object realRepository = createRealRepositoryWithFiles(101, "a.txt");
 
         AbstractRepoImpl impl = createRepoImpl(realRepository);
-        impl.prepareSource(null);
+        impl.prepareSource(101);
 
         String log = getLog();
         assertThat(log, RegularExpressionMatcher.matchesPattern("(?m)^update_add a.txt$"));
@@ -110,10 +108,10 @@ public class SvnRepoImplTest extends AbstractRepoImplTest {
     @Test
     public void svnLogHandleEndingWithSlash() throws IOException, InterruptedException, SVNException {
         // prepare repo
-        Object realRepository = createRealRepositoryWithFiles("101", "a.txt");
+        Object realRepository = createRealRepositoryWithFiles(101, "a.txt");
 
         AbstractRepoImpl impl = createRepoImpl(realRepository.toString()+"/");
-        impl.prepareSource(null);
+        impl.prepareSource(101);
 
         String log = getLog();
         assertThat(log, RegularExpressionMatcher.matchesPattern("(?m)^update_add a.txt$"));
