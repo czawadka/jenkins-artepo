@@ -49,14 +49,8 @@ public class ArtepoCopy extends ArtepoBase {
             Repo sourceRepo = findSourceRepo(build, launcher, listener);
             Repo destinationRepo = getDestinationRepo();
 
-            String buildTag = getResolvedBuildTag(build, listener);
-            RepoInfoProvider infoProvider = createRepoInfoProvider(
-                    build.getProject().getRootProject().getName(),
-                    build.getWorkspace());
-
-            listener.getLogger().println("Copy "+copyPattern+" artifacts from "+sourceRepo+" to "+destinationRepo);
-            copy(build.getBuiltOn(), destinationRepo, sourceRepo, copyPattern,
-                    infoProvider, buildTag);
+            listener.getLogger().println("Copy from "+sourceRepo+" to "+destinationRepo+" using pattern "+copyPattern);
+            copy(build, listener, destinationRepo, sourceRepo, copyPattern);
         }
 
         return true;

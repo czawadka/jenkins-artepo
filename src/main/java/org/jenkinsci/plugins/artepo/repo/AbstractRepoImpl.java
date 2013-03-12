@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.artepo.repo;
 
 import hudson.FilePath;
+import org.jenkinsci.plugins.artepo.ArtepoUtil;
 import org.jenkinsci.plugins.artepo.CopyPattern;
 
 import java.io.IOException;
@@ -20,5 +21,10 @@ abstract public class AbstractRepoImpl {
 
     public RepoInfoProvider getInfoProvider() {
         return infoProvider;
+    }
+
+    protected void sync(FilePath dst, FilePath src, CopyPattern pattern) throws IOException, InterruptedException {
+        infoProvider.getLogger().println("Sync "+src+" to "+dst+" using pattern "+pattern);
+        ArtepoUtil.sync(dst, src, pattern);
     }
 }

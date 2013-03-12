@@ -1,4 +1,5 @@
 1.3.0-dev
+- ability to log from remote node to master's node build log
 
 1.2.4
 - run repo copy (prepareSources/copyFrom) on remote node (Issue #4)

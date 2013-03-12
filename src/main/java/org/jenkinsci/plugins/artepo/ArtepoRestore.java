@@ -37,14 +37,8 @@ public class ArtepoRestore extends ArtepoBase {
             Repo sourceRepo = findSourceRepo(build, launcher, listener);
             Repo destinationRepo = new WorkspaceRepo(mainCopyPattern.getSubFolder());
 
-            String buildTag = getResolvedBuildTag(build, listener);
-            RepoInfoProvider infoProvider = createRepoInfoProvider(
-                    build.getProject().getRootProject().getName(),
-                    build.getWorkspace());
-
             listener.getLogger().println("Restore artifacts from " + sourceRepo + " to " + destinationRepo);
-            copy(build.getBuiltOn(), destinationRepo, sourceRepo, null,
-                    infoProvider, buildTag);
+            copy(build, listener, destinationRepo, sourceRepo, null);
         }
 
         return true;

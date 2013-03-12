@@ -32,7 +32,7 @@ public class FileRepoImpl extends AbstractRepoImpl {
         FilePath destinationPath = new FilePath(new File(path)).child(buildTag);
         destinationPath.mkdirs();
 
-        ArtepoUtil.sync(destinationPath, sourcePath, pattern);
+        sync(destinationPath, sourcePath, pattern);
     }
 
     public String getPath() {

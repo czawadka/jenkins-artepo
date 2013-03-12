@@ -69,6 +69,8 @@ public class SvnRepoImpl extends AbstractRepoImpl {
     FilePath checkout(String buildTag)
             throws SVNException, IOException, InterruptedException {
 
+        infoProvider.getLogger().println("Checkout from "+url);
+
         SVNURL svnUrl = SVNURL.parseURIDecoded(this.url);
         createRepositoryFolderIfNotExists(svnUrl);
 
@@ -116,7 +118,7 @@ public class SvnRepoImpl extends AbstractRepoImpl {
         try {
 
             FilePath wcPath = checkout(null);
-            ArtepoUtil.sync(wcPath, source, pattern);
+            sync(wcPath, source, pattern);
             commit(wcPath, buildTag);
 
         } catch (SVNException e) {
@@ -125,6 +127,8 @@ public class SvnRepoImpl extends AbstractRepoImpl {
     }
 
     void commit(FilePath wcPath, String buildTag) throws SVNException, IOException, InterruptedException {
+        infoProvider.getLogger().println("Commit to "+url);
+
         svnHelper.deleteMissingAddUnversioned(ArtepoUtil.toFile(wcPath));
 
         String commitMessage = prepareCommitMessage(buildTag);

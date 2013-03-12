@@ -5,13 +5,16 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
 import hudson.remoting.Callable;
+import hudson.remoting.RemoteOutputStream;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.util.IOException2;
+import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.artepo.repo.Repo;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Serializable;
 
@@ -66,11 +69,6 @@ public class ArtepoBase extends Notifier {
         return tempPath;
     }
 
-    protected RepoInfoProvider createRepoInfoProvider(String projectName,
-                                                           FilePath workspace) throws IOException, InterruptedException {
-        return new BuildRepoInfoProvider(projectName, workspace);
-    }
-
     protected Repo findSourceRepo(AbstractBuild<?,?> build, Launcher launcher, BuildListener listener) {
         return getSourceRepoStrategy().getSourceRepo(this, build, launcher, listener);
     }
@@ -93,13 +91,16 @@ public class ArtepoBase extends Notifier {
         return build.getResult().isBetterOrEqualTo(Result.SUCCESS);
     }
 
-    protected static class BuildRepoInfoProvider implements RepoInfoProvider, Serializable {
+    static protected class BuildRepoInfoProvider implements RepoInfoProvider, Serializable {
         String projectName;
         FilePath workspace;
+        OutputStream remoteStream;
+        transient PrintStream logger;
 
-        public BuildRepoInfoProvider(String projectName, FilePath workspace) {
+        public BuildRepoInfoProvider(String projectName, FilePath workspace, OutputStream logger) {
             this.projectName = projectName;
             this.workspace = workspace;
+            this.remoteStream = new RemoteOutputStream(logger);
         }
 
         public boolean isBuildActive() {
@@ -111,7 +112,14 @@ public class ArtepoBase extends Notifier {
         }
 
         public PrintStream getLogger() {
-            return System.out;
+            if (logger==null) {
+                try {
+                    logger = new PrintStream(remoteStream, true, "UTF-8");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return logger;
         }
 
         public FilePath getWorkspacePath() {
@@ -119,20 +127,48 @@ public class ArtepoBase extends Notifier {
         }
     }
 
-    static public void copy(Node node, final Repo destinationRepo, final Repo sourceRepo, final CopyPattern copyPattern,
-                            final RepoInfoProvider infoProvider, final String buildTag)
-            throws InterruptedException, IOException {
-        Callable<Object, IOException> callable = new Callable<Object, IOException>() {
-            public Object call() throws IOException {
-                try {
-                    FilePath sourcePath = sourceRepo.prepareSource(infoProvider, buildTag);
-                    destinationRepo.copyFrom(infoProvider, sourcePath, copyPattern, buildTag);
-                    return null;
-                } catch (InterruptedException e) {
-                    throw new IOException2(e);
-                }
+    static protected class CopyCallable implements Callable<Object, IOException> {
+        Repo destinationRepo;
+        Repo sourceRepo;
+        CopyPattern copyPattern;
+        RepoInfoProvider infoProvider;
+        String buildTag;
+
+        public CopyCallable(Repo destinationRepo, Repo sourceRepo, CopyPattern copyPattern, RepoInfoProvider infoProvider, String buildTag) {
+            this.destinationRepo = destinationRepo;
+            this.sourceRepo = sourceRepo;
+            this.copyPattern = copyPattern;
+            this.infoProvider = infoProvider;
+            this.buildTag = buildTag;
+        }
+
+        public Object call() throws IOException {
+            try {
+                FilePath sourcePath = sourceRepo.prepareSource(infoProvider, buildTag);
+                destinationRepo.copyFrom(infoProvider, sourcePath, copyPattern, buildTag);
+                return null;
+            } catch (InterruptedException e) {
+                throw new IOException2(e);
             }
-        };
+        }
+    }
+
+    protected void copy(AbstractBuild build, BuildListener listener,
+                            final Repo destinationRepo, final Repo sourceRepo,
+                            final CopyPattern copyPattern)
+            throws InterruptedException, IOException {
+
+        RepoInfoProvider infoProvider = new BuildRepoInfoProvider(
+                build.getProject().getRootProject().getName(),
+                build.getWorkspace(),
+                listener.getLogger()
+            );
+        String buildTag = getResolvedBuildTag(build, listener);
+
+        Callable<Object, IOException> callable = new CopyCallable(
+                destinationRepo, sourceRepo, copyPattern, infoProvider, buildTag
+            );
+        Node node = build.getBuiltOn();
         node.getChannel().call(callable);
     }
 }
