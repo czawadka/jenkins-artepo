@@ -88,6 +88,22 @@ abstract public class AbstractRepoImplTest {
     }
 
     @Test
+    public void copyFromShouldKeepSvnFolders() throws IOException, InterruptedException, SVNException {
+        // case: "ups... I've commited . folder but should be commited only dist/ folder"
+        Object realRepository = createRealRepository();
+        FilePath source = util.createTempSubDir(null);
+        AbstractRepoImpl impl = createRepoImpl(realRepository);
+        util.replaceFiles(source, "build.xml", "dist/a.txt", "dist/b.txt");
+        impl.copyFrom(source, null, 13);
+
+        util.replaceFiles(source, "build.xml", "c.txt", "dist/a.txt", "dist/b.txt");
+        impl.copyFrom(source, null, 14);
+
+        List<String> repositoryPaths = listRealRepository(realRepository, 14);
+        assertThat(repositoryPaths, containsInAnyOrder("build.xml", "c.txt", "dist/", "dist/a.txt", "dist/b.txt"));
+    }
+
+    @Test
     public void copyFromCanCreateNonExistingPath() throws IOException, InterruptedException, SVNException {
         Object realRepository = prepareNonExistingRealRepository();
         FilePath source = util.createTempSubDir(null);
