@@ -5,6 +5,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,15 +23,28 @@ public class ArtepoUtilTest {
     }
 
     @Test
-    public void testSyncToSvnWithManySvnSubFolders() throws IOException, InterruptedException {
+    public void testSyncCannotRemoveFolderWithSvnAndFile() throws IOException, InterruptedException {
         FilePath dst = util.createTempSubDir("dst");
         util.replaceFiles(dst, "a.txt", ".svn/bla", "dist/.svn/foo", "dist/b.txt");
         FilePath src = util.createTempSubDir("src");
-        util.replaceFiles(src, "c/d.txt");
+        util.replaceFiles(src, "a.txt", "dist/b.txt");
 
         ArtepoUtil.sync(dst, src, null);
 
-        assertThat(util.listDirPaths(dst, false), containsInAnyOrder(".svn/", ".svn/bla", "c/", "c/d.txt"));
+        assertThat(util.listDirPaths(dst, false), containsInAnyOrder("a.txt", ".svn/", ".svn/bla",
+                "dist/", "dist/.svn/", "dist/.svn/foo", "dist/b.txt"));
+    }
+
+    @Test
+    public void testSyncMustRemoveFolderWithOnlySvn() throws IOException, InterruptedException {
+        FilePath dst = util.createTempSubDir("dst");
+        util.replaceFiles(dst, "a.txt", ".svn/bla", "dist/.svn/foo", "dist/b.txt" );
+        FilePath src = util.createTempSubDir("src");
+        util.replaceFiles(src, "a.txt");
+
+        ArtepoUtil.sync(dst, src, null);
+
+        assertThat(util.listDirPaths(dst, false), containsInAnyOrder(".svn/", ".svn/bla", "a.txt"));
     }
 
     @Test
@@ -40,7 +54,7 @@ public class ArtepoUtilTest {
         FilePath src = util.createTempSubDir("src");
         util.replaceFiles(src);
 
-        List<FilePath> orphans = ArtepoUtil.listOrphans(dst, src);
+        Collection<FilePath> orphans = ArtepoUtil.listOrphans(dst, src, null).values();
 
         assertThat(util.filesToPaths(dst, orphans), containsInAnyOrder("a.txt"));
     }
@@ -52,23 +66,9 @@ public class ArtepoUtilTest {
         FilePath src = util.createTempSubDir("src");
         util.replaceFiles(src, "a.txt");
 
-        List<FilePath> orphans = ArtepoUtil.listOrphans(dst, src);
+        Collection<FilePath> orphans = ArtepoUtil.listOrphans(dst, src, null).values();
 
-        if (orphans==null)
-            orphans = Collections.EMPTY_LIST;
         assertThat(util.filesToPaths(dst, orphans), containsInAnyOrder());
-    }
-
-    @Test
-    public void testListOrphansReturnNullIfEmpty() throws IOException, InterruptedException {
-        FilePath dst = util.createTempSubDir("dst");
-        util.replaceFiles(dst, "a.txt");
-        FilePath src = util.createTempSubDir("src");
-        util.replaceFiles(src, "a.txt");
-
-        List<FilePath> orphans = ArtepoUtil.listOrphans(dst, src);
-
-        assertNull(orphans);
     }
 
     @Test
@@ -78,7 +78,7 @@ public class ArtepoUtilTest {
         FilePath src = util.createTempSubDir("src");
         util.replaceFiles(src, "a.txt");
 
-        List<FilePath> orphans = ArtepoUtil.listOrphans(dst, src);
+        Collection<FilePath> orphans = ArtepoUtil.listOrphans(dst, src, null).values();
 
         assertThat(util.filesToPaths(dst, orphans), containsInAnyOrder("dist/"));
     }
@@ -90,10 +90,8 @@ public class ArtepoUtilTest {
         FilePath src = util.createTempSubDir("src");
         util.replaceFiles(src, "dist/b.txt");
 
-        List<FilePath> orphans = ArtepoUtil.listOrphans(dst, src);
+        Collection<FilePath> orphans = ArtepoUtil.listOrphans(dst, src, null).values();
 
-        if (orphans==null)
-            orphans = Collections.EMPTY_LIST;
         assertThat(util.filesToPaths(dst, orphans), containsInAnyOrder());
     }
 
@@ -104,10 +102,8 @@ public class ArtepoUtilTest {
         FilePath src = util.createTempSubDir("src");
         util.replaceFiles(src, "dist/webapp/d.txt");
 
-        List<FilePath> orphans = ArtepoUtil.listOrphans(dst, src);
+        Collection<FilePath> orphans = ArtepoUtil.listOrphans(dst, src, null).values();
 
-        if (orphans==null)
-            orphans = Collections.EMPTY_LIST;
         assertThat(util.filesToPaths(dst, orphans), containsInAnyOrder("dist/webapp/c.txt"));
     }
 
