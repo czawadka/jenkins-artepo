@@ -1,3 +1,6 @@
+1.2.6
+- fix crash on deleted .svn folders
+
 1.2.5
 - ability to log from remote node to master's node build log
 - file repo formats build subfolder with 5 digits (Issue #6)
