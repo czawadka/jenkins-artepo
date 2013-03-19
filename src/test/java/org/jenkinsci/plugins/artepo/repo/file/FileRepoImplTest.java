@@ -20,7 +20,7 @@ public class FileRepoImplTest extends AbstractRepoImplTest {
     @Override
     protected List<String> listRealRepository(Object realRepository, int buildNumber) throws IOException, InterruptedException {
         FilePath repoDir = (FilePath)realRepository;
-        FilePath buildDir = repoDir.child(SubfolderStrategy.formatBuildNumber(buildNumber));
+        FilePath buildDir = SubfolderStrategy.getFormattedBuildSubfolder(repoDir, buildNumber);
         return util.listDirPaths(buildDir);
     }
 

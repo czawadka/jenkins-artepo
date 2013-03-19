@@ -58,7 +58,7 @@ public class ArtepoCopyIntegrationTest extends IntegrationTestBase {
     }
 
     protected FilePath getBuildPath(FilePath repoPath, int buildNumber) {
-        return repoPath.child(SubfolderStrategy.formatBuildNumber(buildNumber));
+        return SubfolderStrategy.getFormattedBuildSubfolder(repoPath, buildNumber);
     }
 
 }

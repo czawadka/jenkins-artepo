@@ -64,14 +64,14 @@ public enum SubfolderStrategy {
     abstract public List<FilePath> getPotentialSourcePaths(FilePath repoPath, int buildNumber) throws InterruptedException, IOException;
 
 
-    public FilePath getFormattedBuildSubfolder(FilePath repoPath, int buildNumber) {
+    static public FilePath getFormattedBuildSubfolder(FilePath repoPath, int buildNumber) {
         return repoPath.child(formatBuildNumber(buildNumber));
     }
-    public FilePath getUnFormattedBuildSubfolder(FilePath repoPath, int buildNumber) {
+    static public FilePath getUnFormattedBuildSubfolder(FilePath repoPath, int buildNumber) {
         return repoPath.child(String.valueOf(buildNumber));
     }
 
-    static public String formatBuildNumber(int buildNumber) {
+    static private String formatBuildNumber(int buildNumber) {
         return String.format("%05d", buildNumber);
     }
 
