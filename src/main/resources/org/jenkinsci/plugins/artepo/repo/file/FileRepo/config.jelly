@@ -5,4 +5,8 @@
         <f:textbox />
     </f:entry>
 
+    <f:entry title="Subfolder strategy" field="subfolderStrategy">
+        <f:enum>${it.name()}</f:enum>
+    </f:entry>
+
 </j:jelly>
