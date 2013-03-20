@@ -21,27 +21,40 @@ public class FileRepoCleanupThreadTest {
     }
 
     @Test
-    public void testFindDirsToDeleteNaturalOrdering() throws Exception {
+    public void testFindBuildDirsToDeleteNaturalOrdering() throws Exception {
         FilePath basePath = util.createTempDir();
-        for (int i = 0; i < FileRepoCleanupThread.buildsToKeep+1; i++) {
-            basePath.child(String.valueOf(8+i)).mkdirs();
+        for (int i = 8; i < 8+FileRepoCleanupThread.buildsToKeep+1; i++) {
+            basePath.child(String.valueOf(i)).mkdirs();
         }
         FileRepo repo = new FileRepo(basePath.getRemote());
 
-        List<FilePath> dirsToDelete = cleanupThread.findDirsToDelete(repo);
+        List<FilePath> dirsToDelete = cleanupThread.findBuildDirsToDelete(repo);
 
         assertThat(util.filesToPaths(basePath, dirsToDelete), containsInAnyOrder("8/"));
     }
 
     @Test
-    public void testFindDirsToDeleteIsEmptyIfBuildsAreLessThenToKeep() throws Exception {
+    public void testFindBuildDirsToDeleteIsEmptyIfBuildsAreLessThenToKeep() throws Exception {
         FilePath basePath = util.createTempDir();
         for (int i = 0; i < FileRepoCleanupThread.buildsToKeep-2; i++) {
             basePath.child(String.valueOf(i)).mkdirs();
         }
         FileRepo repo = new FileRepo(basePath.getRemote());
 
-        List<FilePath> dirsToDelete = cleanupThread.findDirsToDelete(repo);
+        List<FilePath> dirsToDelete = cleanupThread.findBuildDirsToDelete(repo);
         assertEquals(0, dirsToDelete.size());
+    }
+
+    @Test
+    public void testFindBuildDirsToDeleteShouldReturnOnlyBuildFolders() throws Exception {
+        FilePath basePath = util.createTempDir();
+        for (int i = 1; i < 1+FileRepoCleanupThread.buildsToKeep+1; i++) {
+            basePath.child(String.valueOf(i)).mkdirs();
+        }
+        basePath.child("latest").mkdirs();
+        FileRepo repo = new FileRepo(basePath.getRemote());
+
+        List<FilePath> dirsToDelete = cleanupThread.findBuildDirsToDelete(repo);
+        assertThat(util.filesToPaths(basePath, dirsToDelete), containsInAnyOrder("1/"));
     }
 }
