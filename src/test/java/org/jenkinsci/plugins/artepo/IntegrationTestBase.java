@@ -10,6 +10,7 @@ import hudson.plugins.promoted_builds.conditions.ManualCondition;
 import hudson.slaves.ComputerListener;
 import hudson.slaves.SlaveComputer;
 import hudson.tasks.Builder;
+import hudson.util.IOException2;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.artepo.repo.file.FileRepo;
 import org.jvnet.hudson.test.HudsonTestCase;
@@ -35,7 +36,17 @@ abstract public class IntegrationTestBase extends HudsonTestCase {
     public void tearDown() throws Exception {
         util.close();
         terminateIntegrationSlave();
-        super.tearDown();
+
+        try {
+            super.tearDown();
+        } catch (IOException2 e) {
+            if ("Failed to clean up temp dirs".equals(e.getMessage())) {
+                // sometimes despite closing slave log in terminateIntegrationSlave log is still blocked
+                // so ignore exception
+            } else {
+                throw e;
+            }
+        }
     }
 
     protected void createIntegrationSlave() throws Exception {

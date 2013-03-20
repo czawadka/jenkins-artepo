@@ -18,6 +18,7 @@ import org.apache.tools.ant.types.selectors.SelectorUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class ArtepoUtil {
     static public final String PROMOTED_NUMBER = "PROMOTED_NUMBER";
@@ -27,7 +28,7 @@ public class ArtepoUtil {
         return new File(filePath.getRemote());
     }
 
-    static private final List<String> SYNC_DST_PRESERVE_PATHS = Arrays.asList(".git", ".svn" );
+    static private final Pattern SYNC_DST_PRESERVE_PATHS = Pattern.compile("^(\\.git/|\\.svn/|.*/\\.svn/)$");
 
     static public void sync(FilePath dst, FilePath src, CopyPattern pattern) throws IOException, InterruptedException {
         String includes = null;
@@ -49,15 +50,10 @@ public class ArtepoUtil {
         src.copyRecursiveTo(includes, excludes, dst);
     }
 
-    static public List<FilePath> deleteOrphans(FilePath dst, FilePath src, Collection<String> preservePaths) throws IOException, InterruptedException {
-        final List<FilePath> dstFilesToDelete = listOrphans(dst, src);
+    static public Collection<FilePath> deleteOrphans(FilePath dst, FilePath src, Pattern preservePathsPattern) throws IOException, InterruptedException {
+        final Collection<FilePath> dstFilesToDelete = listOrphans(dst, src, preservePathsPattern).values();
 
         if (dstFilesToDelete!=null) {
-            if (preservePaths!=null) {
-                for (String preservePath : preservePaths) {
-                    dstFilesToDelete.remove(dst.child(preservePath));
-                }
-            }
 
             dst.act(new FilePath.FileCallable<Object>() {
                 public Object invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
@@ -72,30 +68,39 @@ public class ArtepoUtil {
         return dstFilesToDelete;
     }
 
-    static public List<FilePath> listOrphans(FilePath dst, FilePath src) throws IOException, InterruptedException {
-        List<FilePath> orphans = null;
+    static public Map<String, FilePath> listOrphans(FilePath dst, FilePath src,
+                                             Pattern preserveFilePattern)
+            throws IOException, InterruptedException {
 
-        List<FilePath> dstChildren = dst.list();
-        if (dstChildren!=null) {
-            Collection<FilePath> srcChildren = src.list();
-            if (srcChildren==null) { // src has no children means all dst children are orphans
-                orphans = dstChildren;
+        Map<String,FilePath> orphans = new LinkedHashMap<String, FilePath>();
+        LinkedList<String> pathsToCheck = new LinkedList<String>();
+        pathsToCheck.add("");
+
+        while(!pathsToCheck.isEmpty()) {
+            String currentPath = pathsToCheck.removeFirst();
+
+            List<FilePath> dstChildren = dst.child(currentPath).list();
+            if (dstChildren==null) {
+                continue;
+            }
+
+            Collection<FilePath> srcChildren = src.child(currentPath).list();
+            if (srcChildren==null) {
+                srcChildren = Collections.EMPTY_LIST;
             } else {
-                srcChildren = new LinkedHashSet<FilePath>(srcChildren);
-                for(FilePath dstChild : dstChildren) {
-                    FilePath srcChild = src.child(dstChild.getName());
-                    if (!srcChildren.contains(srcChild)) {
-                        if (orphans==null)
-                            orphans = new ArrayList<FilePath>();
-                        orphans.add(dstChild);
-                    } else {
-                        List<FilePath> childOrphans = listOrphans(dstChild, srcChild);
-                        if (childOrphans!=null) {
-                            if (orphans==null)
-                                orphans = new ArrayList<FilePath>(childOrphans.size());
-                            orphans.addAll(childOrphans);
-                        }
-                    }
+                srcChildren = new HashSet<FilePath>(srcChildren);
+            }
+
+            for(FilePath dstChild : dstChildren) {
+                String path = currentPath+dstChild.getName() + (dstChild.isDirectory() ? "/": "");
+                if (preserveFilePattern!=null && preserveFilePattern.matcher(path).matches()) {
+                    continue;
+                }
+                FilePath srcChild = src.child(path);
+                if (!srcChildren.contains(srcChild)) {
+                    orphans.put(path, dstChild);
+                } else if (path.endsWith("/")) {
+                    pathsToCheck.add(path);
                 }
             }
         }
