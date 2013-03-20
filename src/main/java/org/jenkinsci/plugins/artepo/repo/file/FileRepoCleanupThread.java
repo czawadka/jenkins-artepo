@@ -15,8 +15,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Clean up copied build from main level artepo build step
@@ -36,6 +38,8 @@ public class FileRepoCleanupThread extends AsyncPeriodicWork {
      * How often (in hours) clean should be run
      */
     static public final int frequency = Integer.getInteger(FileRepoCleanupThread.class.getName() + ".frequency", 2);
+
+    Pattern buildFolderPattern = Pattern.compile("[0-9]+");
 
     public FileRepoCleanupThread() {
         super("artepo FileRepo clean-up");
@@ -80,18 +84,27 @@ public class FileRepoCleanupThread extends AsyncPeriodicWork {
     }
 
     void cleanFileRepo(FileRepo fileRepo) throws IOException, InterruptedException {
-        List<FilePath> dirsToDelete = findDirsToDelete(fileRepo);
+        List<FilePath> dirsToDelete = findBuildDirsToDelete(fileRepo);
         for (FilePath dir : dirsToDelete) {
             delete(dir);
         }
     }
 
-    List<FilePath> findDirsToDelete(FileRepo fileRepo) throws IOException, InterruptedException {
+    List<FilePath> findBuildDirsToDelete(FileRepo fileRepo) throws IOException, InterruptedException {
         String path = fileRepo.getPath();
         FilePath dir = new FilePath(new File(path));
         List<FilePath> subDirs = dir.list();
         if (subDirs == null || subDirs.size() <= buildsToKeep)
             return Collections.EMPTY_LIST;
+
+        Iterator<FilePath> it = subDirs.iterator();
+        while (it.hasNext()) {
+            FilePath subDir = it.next();
+            if (!buildFolderPattern.matcher(subDir.getName()).matches()) {
+                it.remove();
+            }
+        }
+
         Collections.sort(subDirs, newestBuildsAreLastComparator);
         return subDirs.subList(0, subDirs.size() - buildsToKeep);
     }
