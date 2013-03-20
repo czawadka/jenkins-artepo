@@ -3,7 +3,7 @@ package org.jenkinsci.plugins.artepo;
 import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
-import org.jenkinsci.plugins.artepo.repo.file.FileRepoImpl;
+import org.jenkinsci.plugins.artepo.repo.file.SubfolderStrategy;
 
 import java.util.List;
 
@@ -58,7 +58,7 @@ public class ArtepoCopyIntegrationTest extends IntegrationTestBase {
     }
 
     protected FilePath getBuildPath(FilePath repoPath, int buildNumber) {
-        return repoPath.child(FileRepoImpl.formatBuildNumber(buildNumber));
+        return SubfolderStrategy.getFormattedBuildSubfolder(repoPath, buildNumber);
     }
 
 }

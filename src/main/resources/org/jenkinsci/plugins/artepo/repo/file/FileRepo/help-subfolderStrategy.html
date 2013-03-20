@@ -1,0 +1,12 @@
+<div>
+    Inside destination path subfolders can be created according to following rules:
+    <ul>
+        <li>OnlyBuildSubfolders - inside destination path there will be created subfolders with build numbers
+            formatted to 5 digits, eg. 00001, 00002, etc.</li>
+        <li>BuildAndLatestSubfolders - additionally to build subfolders from OnlyBuildSubfolders in destination path
+            there will be <em>latest</em> subfolder with artifacts from most recent build</li>
+        <li>NoSubfolders - no subfolders will be created at all, destination path will consist of artifacts
+            only from most recent build. <br/><em>WARNING</em> Because artifacts from only latest build will be kept
+            there is no possibility to access artifacts from older builds. Use with caution!</li>
+    </ul>
+</div>

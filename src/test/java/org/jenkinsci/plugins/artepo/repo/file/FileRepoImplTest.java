@@ -5,8 +5,10 @@ import org.jenkinsci.plugins.artepo.repo.AbstractRepoImpl;
 import org.jenkinsci.plugins.artepo.repo.AbstractRepoImplTest;
 import org.jenkinsci.plugins.artepo.repo.RepoInfoProvider;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -18,12 +20,12 @@ public class FileRepoImplTest extends AbstractRepoImplTest {
     @Override
     protected List<String> listRealRepository(Object realRepository, int buildNumber) throws IOException, InterruptedException {
         FilePath repoDir = (FilePath)realRepository;
-        FilePath buildDir = repoDir.child(FileRepoImpl.formatBuildNumber(buildNumber));
+        FilePath buildDir = SubfolderStrategy.getFormattedBuildSubfolder(repoDir, buildNumber);
         return util.listDirPaths(buildDir);
     }
 
     @Override
-    protected Object createRealRepository() throws IOException, InterruptedException {
+    protected FilePath createRealRepository() throws IOException, InterruptedException {
         return util.createTempSubDir(null);
     }
 
@@ -51,10 +53,13 @@ public class FileRepoImplTest extends AbstractRepoImplTest {
     }
 
     @Override
-    protected AbstractRepoImpl createRepoImpl(Object realRepository) throws IOException, InterruptedException {
-        String path = realRepository.toString();
+    protected FileRepoImpl createRepoImpl(Object realRepository) throws IOException, InterruptedException {
+        return createRepoImpl(realRepository.toString(), false);
+    }
+
+    protected FileRepoImpl createRepoImpl(String path, boolean createLatest) throws IOException, InterruptedException {
         RepoInfoProvider infoProvider = createInfoProvider();
-        return new FileRepoImpl(infoProvider, path);
+        return new FileRepoImpl(infoProvider, path, SubfolderStrategy.DEFAULT);
     }
 
     @Test
@@ -74,10 +79,49 @@ public class FileRepoImplTest extends AbstractRepoImplTest {
     public void testSupportsNon5DigitBuildSubfolder() throws IOException, InterruptedException {
         FilePath repoPath = util.createTempSubDir("repo");
         repoPath.child("13").mkdirs();
-        FileRepoImpl fileRepo = new FileRepoImpl(createInfoProvider(repoPath), repoPath.getRemote());
+        FileRepoImpl fileRepo = createRepoImpl(repoPath.getRemote());
 
         FilePath src = fileRepo.prepareSource(13);
 
         assertEquals("13", src.getName());
+    }
+
+    @Test
+    public void testCopyFromMustCopyToAllDestinationsReturnedFromSubfolderStrategy() throws IOException, InterruptedException {
+        FilePath repoPath = util.createTempSubDir("repo");
+        FilePath sub1Path = util.createTempSubDir("sub1");
+        FilePath sub2Path = util.createTempSubDir("sub2");
+        FilePath srcPath = util.createTempSubDir("src");
+        util.replaceFiles(srcPath, "a.txt", "b/c.txt");
+        int buildNumber = 13;
+        SubfolderStrategy subfolderStrategy = Mockito.mock(SubfolderStrategy.class);
+        Mockito.when(subfolderStrategy.getDestinationPaths(repoPath, buildNumber))
+                .thenReturn(Arrays.asList(sub1Path, sub2Path));
+        FileRepoImpl fileRepo = createRepoImpl(repoPath.getRemote());
+        fileRepo.subfolderStrategy = subfolderStrategy;
+
+        fileRepo.copyFrom(srcPath, null, buildNumber);
+
+        Mockito.verify(subfolderStrategy, Mockito.times(1)).getDestinationPaths(repoPath, buildNumber);
+        assertThat(util.listDirPaths(sub1Path), containsInAnyOrder("a.txt", "b/", "b/c.txt"));
+        assertThat(util.listDirPaths(sub2Path), containsInAnyOrder("a.txt", "b/", "b/c.txt"));
+    }
+
+    @Test
+    public void testPrepareSourceMustReturnFirstExistingFolderGotFromSubfolderStrategy() throws IOException, InterruptedException {
+        FilePath repoPath = createRealRepository();
+        FilePath sub1Path = repoPath.child("sub1");
+        FilePath sub2Path = util.createTempSubDir("sub2");
+        int buildNumber = 13;
+        SubfolderStrategy subfolderStrategy = Mockito.mock(SubfolderStrategy.class);
+        Mockito.when(subfolderStrategy.getPotentialSourcePaths(repoPath, buildNumber))
+                .thenReturn(Arrays.asList(sub1Path, sub2Path));
+        FileRepoImpl fileRepo = createRepoImpl(repoPath);
+        fileRepo.subfolderStrategy = subfolderStrategy;
+
+        FilePath srcPath = fileRepo.prepareSource(buildNumber);
+
+        Mockito.verify(subfolderStrategy, Mockito.times(1)).getPotentialSourcePaths(repoPath, buildNumber);
+        assertEquals(srcPath, sub2Path);
     }
 }
